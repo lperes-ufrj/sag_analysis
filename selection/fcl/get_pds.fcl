@@ -1,0 +1,91 @@
+#include "HDF5RawInput3.fcl"
+#include "PDVDTPCReader.fcl"
+
+#include "PDVDTriggerReader4.fcl"
+
+#include "wirecell_dune.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "SpacePointSolver_dune.fcl"
+#include "cluster_dune.fcl"
+#include "trackfindermodules_dune.fcl"
+#include "pandoramodules_dune.fcl"
+#include "calorimetry_pdune.fcl"
+#include "calibration_dune.fcl"
+#include "featurelabelingmodules.fcl"
+#include "particleid.fcl"
+#include "mctrutht0matching.fcl"
+#include "t0reco.fcl"
+#include "opticaldetectormodules_dune.fcl"
+#include "showerfindermodules_dune.fcl"
+#include "emshower3d.fcl"
+#include "ProtoDUNETriggerFilter.fcl"
+#include "OpSlicer.fcl"
+#include "CRT.fcl"
+#include "T0RecoAnodePiercers.fcl"
+#include "numberofhitsfilter.fcl"
+#include "protodune_tools_dune.fcl"
+
+
+process_name: myPDSpdvd
+
+services:
+{
+   TFileService: { fileName: "%ifb_reco_hist.root" }
+   TimeTracker:       @local::dune_time_tracker
+   MemoryTracker:     @local::dune_memory_tracker
+   RandomNumberGenerator: {}
+   FileCatalogMetadata:  @local::art_file_catalog_data
+                         @table::protodunevd_reco_services
+   message:  @local::dune_message_services_prod
+        
+   HDF5RawFile3Service:  {}
+   IFDH: {}
+   DetectorPropertiesService:  @local::protodunevd_detproperties
+
+   TPCChannelMapService:
+   {
+     FileName: "PD2VDBottomTPCChannelMap_v1.txt"
+   }
+   DAPHNEChannelMapService: {
+     FileName: "PDVD_PDS_Mapping_v07082025.json"
+     IgnoreLinks: true
+   }
+   IPhotonCalibrator: {
+      BadChannels: []
+      service_provider: "PhotonCalibratorServiceProtoDUNESP"
+   }
+}
+
+source: @local::hdf5rawinput3
+
+outputs: {
+  out1: {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_keepup.root"
+    outputCommands: [ "keep *", "drop raw::RawDigit*_*_*_*" ]
+    compressionLevel: 1
+    dataTier: "full-reconstructed"
+    streamName: "proc_rootout"
+  }
+}
+
+physics: {
+  filters: {
+    nhitsfilter: @local::pdvd_nhitsfilter
+  }
+
+  producers: {
+    rns:            { module_type: "RandomNumberSaver" }
+    
+    pdvddaphne:       @local::protodunevd_daphne  
+    
+  }
+  produce: [rns, pdvddaphne]
+
+  output : [ out1 ]
+  trigger_paths: [ produce ]
+  end_paths : [ output ]
+}
+
+
+pdvddaphne.SubDetString: ["VD_Membrane_PDS","VD_Cathode_PDS","VD_PMT_PDS"]
