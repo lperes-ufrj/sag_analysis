@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+exec > >(tee "jobscript_debug.log") 2>&1
+set -x
+
 : <<'JUSTIN_COMMANDS'
 
 # ======================================================================
@@ -41,9 +44,9 @@ justin-test-jobscript \
 # ======================================================================
 
 justin simple-workflow \
-  --description "SAG PDS analysis on ProtoDUNE-VD run 39357" \
+  --description "PDS analysis on ProtoDUNE-VD run 39357" \
   --mql "$MQL_QUERY" \
-  --jobscript-git lperes-ufrj/sag_analysis/run_decoder_pdvd.jobscript:main \
+  --jobscript-git lperes-ufrj/sag_analysis/jobs_justin/decoder_selection_jobs/run_decoder_pdvd.jobscript:main \
   --scope usertests \
   --rss-mib 8000 \
   --wall-seconds 14400 \
