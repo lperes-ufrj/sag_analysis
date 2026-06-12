@@ -1,0 +1,161 @@
+#!/bin/bash
+set -euo pipefail
+
+: <<'JUSTIN_COMMANDS'
+
+# ======================================================================
+# justIN setup commands
+# ======================================================================
+
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+setup metacat
+setup rucio
+setup justin
+
+justin get-token
+export RUCIO_ACCOUNT=justinreadonly
+
+rucio whoami
+
+# ======================================================================
+# Input sample
+# ======================================================================
+
+MQL_QUERY="files from vd-protodune:vd-protodune_39357 ordered limit 50"
+
+metacat query "$MQL_QUERY"
+metacat query -s "$MQL_QUERY"
+
+# ======================================================================
+# Test GitHub jobscript
+# ======================================================================
+
+MQL_QUERY_TEST="files from vd-protodune:vd-protodune_39357 ordered limit 1"
+
+justin-test-jobscript \
+  --mql "$MQL_QUERY_TEST" \
+  --jobscript-git lperes-ufrj/sag_analysis/run_decoder_pdvd.jobscript:main
+
+# ======================================================================
+# Submit full workflow using jobscript directly from GitHub
+# ======================================================================
+
+justin simple-workflow \
+  --description "SAG PDS analysis on ProtoDUNE-VD run 39357" \
+  --mql "$MQL_QUERY" \
+  --jobscript-git lperes-ufrj/sag_analysis/run_decoder_pdvd.jobscript:main \
+  --scope usertests \
+  --rss-mib 8000 \
+  --wall-seconds 14400 \
+  --max-distance 30 \
+  --output-pattern "*.root:https://fndcadoor.fnal.gov:2880/dune/persistent/users/lperes/sag_analysis" \
+  --output-pattern "*.log:https://fndcadoor.fnal.gov:2880/dune/persistent/users/lperes/sag_analysis" \
+  --lifetime-days 30
+
+# ======================================================================
+# Monitoring commands
+# ======================================================================
+
+justin show-workflows
+justin show-jobs --workflow-id WORKFLOW_ID
+justin show-files --workflow-id WORKFLOW_ID
+justin show-stage-outputs --workflow-id WORKFLOW_ID --stage-id 1
+
+ls -lh /pnfs/dune/persistent/users/lperes/sag_analysis
+
+JUSTIN_COMMANDS
+
+
+echo "==== Job started ===="
+date
+hostname
+pwd
+
+echo "==== Current directory content ===="
+ls -lah
+find . -maxdepth 4 -type f | sort
+
+echo "==== justIN variables ===="
+echo "JUSTIN_PATH=${JUSTIN_PATH:-}"
+echo "JUSTIN_WORKFLOW_ID=${JUSTIN_WORKFLOW_ID:-}"
+echo "JUSTIN_STAGE_ID=${JUSTIN_STAGE_ID:-}"
+
+# ----------------------------------------------------------------------
+# DUNE/LArSoft environment
+# ----------------------------------------------------------------------
+
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+
+export DUNELAR_VERSION=v10_17_00d00
+export DUNELAR_QUALIFIER=e26:prof
+
+setup -B dunesw ${DUNELAR_VERSION} -q ${DUNELAR_QUALIFIER}
+
+echo "==== Software check ===="
+which lar
+lar --version || true
+
+# ----------------------------------------------------------------------
+# FHiCL setup from GitHub repo
+# ----------------------------------------------------------------------
+
+FCL_FILE="selection/fcl/get_pds.fcl"
+
+export FHICL_FILE_PATH="$PWD/selection/fcl:${FHICL_FILE_PATH:-}"
+
+echo "==== FHiCL check ===="
+echo "PWD = $PWD"
+echo "FCL_FILE = $FCL_FILE"
+echo "FHICL_FILE_PATH = $FHICL_FILE_PATH"
+ls -lh "$FCL_FILE"
+
+# ----------------------------------------------------------------------
+# Get one input file from justIN
+# ----------------------------------------------------------------------
+
+echo "==== Getting input file ===="
+
+did_pfn_rse="$($JUSTIN_PATH/justin-get-file)"
+
+if [ -z "$did_pfn_rse" ]; then
+    echo "No input file assigned by justIN."
+    exit 0
+fi
+
+echo "justin-get-file returned:"
+echo "$did_pfn_rse"
+
+DID="$(echo "$did_pfn_rse" | awk '{print $1}')"
+PFN="$(echo "$did_pfn_rse" | awk '{print $2}')"
+RSE="$(echo "$did_pfn_rse" | awk '{print $3}')"
+
+echo "DID = $DID"
+echo "PFN = $PFN"
+echo "RSE = $RSE"
+
+input_base="$(basename "$DID")"
+input_base="${input_base%.hdf5}"
+input_base="${input_base%.root}"
+
+# ----------------------------------------------------------------------
+# Run FHiCL on all events
+# ----------------------------------------------------------------------
+
+out_root="sag_analysis_${input_base}.root"
+hist_root="sag_analysis_${input_base}_hist.root"
+log_file="sag_analysis_${input_base}.log"
+
+echo "==== Running lar ===="
+echo "FCL_FILE    = $FCL_FILE"
+echo "Input PFN   = $PFN"
+echo "Output ROOT = $out_root"
+echo "Hist ROOT   = $hist_root"
+echo "Log file    = $log_file"
+
+lar -c "$FCL_FILE" "$PFN" -o "$out_root" -T "$hist_root" 2>&1 | tee "$log_file"
+
+echo "==== Output files ===="
+ls -lh
+
+echo "==== Job finished ===="
+date
