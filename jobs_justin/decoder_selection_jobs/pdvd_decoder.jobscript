@@ -1,0 +1,78 @@
+#!/bin/bash
+: <<'EOF'
+justin simple-workflow \
+  --mql "files from vd-protodune:vd-protodune_39510 ordered limit 50" \
+  --jobscript test_pdvd_decoder.jobscript \
+  --description "ProtoDUNE-VD decoder: full dataset run 39510, 0 kV" \
+  --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
+  --rss-mib 8000 \
+  --wall 14400 \
+  --scope usertests \
+  --lifetime-days 7 \
+  --output-pattern "*_decoder_test.root:${FNALURL}${USERF}" \
+  --output-pattern "*_decoder_test_logs.tgz:${FNALURL}${USERF}"
+
+EOF
+
+FCL_FILE="${FCL_FILE:-${INPUT_TAR_DIR_LOCAL}/selection/fcl/get_pds.fcl}"
+
+echo "=== justIN ProtoDUNE-VD decoder test ==="
+echo "FCL_FILE = ${FCL_FILE}"
+
+did_pfn_rse="$("${JUSTIN_PATH}/justin-get-file")"
+
+if [ -z "${did_pfn_rse}" ]; then
+    echo "No input file available."
+    exit 0
+fi
+
+did="$(echo "${did_pfn_rse}" | awk '{print $1}')"
+pfn="$(echo "${did_pfn_rse}" | awk '{print $2}')"
+
+echo "Input DID: ${did}"
+echo "Input PFN: ${pfn}"
+
+echo "${did}" > all-input-dids.txt
+
+input_file="$(basename "${pfn}")"
+stem="${input_file%.hdf5}"
+
+out_file="${stem}_decoder_test.root"
+log_file="${stem}_decoder_test.log"
+
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+setup dunesw v10_17_00d00 -q e26:prof
+
+(
+    export LD_PRELOAD="${XROOTD_LIB}/libXrdPosixPreload.so"
+
+    echo "Running:"
+    echo "lar -c ${FCL_FILE} -o ${out_file} ${pfn}"
+
+    lar -c "${FCL_FILE}" -o "${out_file}" "${pfn}"
+) > "${log_file}" 2>&1
+
+lar_exit=$?
+
+tail -100 "${log_file}"
+
+log_archive="${stem}_decoder_test_logs.tgz"
+
+if [ "${lar_exit}" -ne 0 ]; then
+    echo "lar failed with exit code ${lar_exit}"
+    tar -czf "${log_archive}" "${log_file}"
+    exit "${lar_exit}"
+fi
+
+if [ ! -s "${out_file}" ]; then
+    echo "No ROOT output was created."
+    tar -czf "${log_archive}" "${log_file}"
+    exit 1
+fi
+
+echo "${pfn}" > justin-processed-pfns.txt
+
+tar -czf "${log_archive}" "${log_file}"
+
+echo "Test completed successfully."
+exit 0

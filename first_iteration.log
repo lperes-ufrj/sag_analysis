@@ -1,0 +1,4 @@
+export INPUT_TAR_DIR_LOCAL=/cvmfs/fifeuser2.opensciencegrid.org/sw/dune/3d114de83a6da655f50d9c60a37b498500303660
+export FCL_FILE="$INPUT_TAR_DIR_LOCAL/selection/fcl/get_pds.fcl"
+export FNALURL="https://fndcadoor.fnal.gov:2880"
+export USERF="dune/scratch/users/lperes/sag_analysis"

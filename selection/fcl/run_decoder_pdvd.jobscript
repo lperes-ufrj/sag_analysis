@@ -1,0 +1,259 @@
+```bash
+#!/bin/bash
+
+: <<'EOF'
+
+Before submitting, create and upload the tar:
+
+cd /exp/dune/app/users/lperes/sag_analysis
+tar cvf sag_local_fcl.tar selection/fcl/get_pds.fcl
+
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+setup justin
+justin get-token
+
+INPUT_TAR_DIR_LOCAL=$(justin-cvmfs-upload sag_local_fcl.tar)
+echo "$INPUT_TAR_DIR_LOCAL"
+
+Check:
+
+find "$INPUT_TAR_DIR_LOCAL" -maxdepth 4 -type f | sort
+
+Submit test:
+
+MQL_QUERY_TEST="files from vd-protodune:vd-protodune_39357 ordered limit 1"
+
+justin simple-workflow \
+  --description "TEST PDS decoder on ProtoDUNE-VD run 39357" \
+  --mql "$MQL_QUERY_TEST" \
+  --jobscript run_decoder_pdvd.jobscript \
+  --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
+  --scope usertests \
+  --rss-mib 8000 \
+  --wall-seconds 14400 \
+  --max-distance 30 \
+  --output-pattern "*.root:https://fndcadoor.fnal.gov:2880/dune/persistent/users/lperes/sag_analysis" \
+  --output-pattern "*.log:https://fndcadoor.fnal.gov:2880/dune/persistent/users/lperes/sag_analysis" \
+  --output-pattern "*.tgz:https://fndcadoor.fnal.gov:2880/dune/persistent/users/lperes/sag_analysis" \
+  --lifetime-days 30
+
+EOF
+
+
+# ============================================================
+# Basic setup
+# ============================================================
+
+set -euo pipefail
+
+echo "==== Job started ===="
+date
+hostname
+pwd
+ls -lah
+
+
+# ============================================================
+# Check local CVMFS input tar directory
+# ============================================================
+
+if [ -z "${INPUT_TAR_DIR_LOCAL:-}" ]; then
+  echo "ERROR: INPUT_TAR_DIR_LOCAL is not set."
+  exit 1
+fi
+
+echo "INPUT_TAR_DIR_LOCAL = $INPUT_TAR_DIR_LOCAL"
+
+if [ ! -d "$INPUT_TAR_DIR_LOCAL" ]; then
+  echo "ERROR: INPUT_TAR_DIR_LOCAL does not exist:"
+  echo "$INPUT_TAR_DIR_LOCAL"
+  exit 1
+fi
+
+find "$INPUT_TAR_DIR_LOCAL" -maxdepth 4 -type f | sort
+
+
+# ============================================================
+# DUNE / LArSoft setup
+# ============================================================
+
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+
+setup metacat
+setup rucio
+setup justin
+
+export METACAT_SERVER_URL=https://metacat.fnal.gov:9443/dune_meta_prod/app
+export METACAT_AUTH_SERVER_URL=https://metacat.fnal.gov:8143/auth/dune
+
+export DUNELAR_VERSION=${DUNELAR_VERSION:-v10_17_00d00}
+export DUNELAR_QUALIFIER=${DUNELAR_QUALIFIER:-e26:prof}
+
+setup -B dunesw "$DUNELAR_VERSION" -q "$DUNELAR_QUALIFIER"
+
+echo "==== Software check ===="
+which lar
+lar --version || true
+
+
+# ============================================================
+# FHiCL setup
+# ============================================================
+
+FCL_FILE="${FCL_FILE:-$INPUT_TAR_DIR_LOCAL/selection/fcl/get_pds.fcl}"
+
+echo "==== FHiCL check ===="
+echo "FCL_FILE = $FCL_FILE"
+
+if [ ! -s "$FCL_FILE" ]; then
+  echo "ERROR: FHiCL file not found or empty:"
+  echo "$FCL_FILE"
+  exit 1
+fi
+
+ls -lh "$FCL_FILE"
+
+export FHICL_FILE_PATH="$(dirname "$FCL_FILE"):${FHICL_FILE_PATH:-}"
+
+echo "FHICL_FILE_PATH = $FHICL_FILE_PATH"
+
+
+# ============================================================
+# Thread settings
+# ============================================================
+
+JUSTIN_PROCESSORS=${JUSTIN_PROCESSORS:-1}
+
+echo "Justin processors: $JUSTIN_PROCESSORS"
+
+export TF_NUM_THREADS=$JUSTIN_PROCESSORS
+export OPENBLAS_NUM_THREADS=$JUSTIN_PROCESSORS
+export JULIA_NUM_THREADS=$JUSTIN_PROCESSORS
+export MKL_NUM_THREADS=$JUSTIN_PROCESSORS
+export NUMEXPR_NUM_THREADS=$JUSTIN_PROCESSORS
+export OMP_NUM_THREADS=$JUSTIN_PROCESSORS
+
+
+# ============================================================
+# Get one input file from justIN
+# ============================================================
+
+echo "==== Getting input file ===="
+
+did_pfn_rse="$($JUSTIN_PATH/justin-get-file)"
+
+if [ "$did_pfn_rse" = "" ]; then
+  echo "Nothing to process - exit jobscript."
+  exit 0
+fi
+
+echo "justin-get-file returned:"
+echo "$did_pfn_rse"
+
+DID="$(echo "$did_pfn_rse" | awk '{print $1}')"
+PFN="$(echo "$did_pfn_rse" | awk '{print $2}')"
+RSE="$(echo "$did_pfn_rse" | awk '{print $3}')"
+
+echo "DID = $DID"
+echo "PFN = $PFN"
+echo "RSE = $RSE"
+
+echo "$DID" >> all-input-dids.txt
+
+
+# ============================================================
+# Avoid FNAL tape-backed PFN if possible
+# ============================================================
+
+if echo "$PFN" | grep -q "tape_backed"; then
+  echo "WARNING: justIN gave a tape-backed PFN."
+  echo "Trying to find eospublic replica with Rucio..."
+
+  ALT_PFN="$(rucio replica list file --pfns "$DID" | grep "root://eospublic.cern.ch" | head -n 1 || true)"
+
+  if [ -z "$ALT_PFN" ]; then
+    echo "ERROR: Could not find eospublic PFN for:"
+    echo "$DID"
+    exit 1
+  fi
+
+  PFN="$ALT_PFN"
+
+  echo "Using alternative PFN:"
+  echo "$PFN"
+fi
+
+
+# ============================================================
+# Output names
+# ============================================================
+
+input_base="$(basename "$DID")"
+input_base="${input_base%.hdf5}"
+input_base="${input_base%.root}"
+
+now="$(date -u +"%Y%m%dT%H%M%SZ")"
+
+log_file="sag_analysis_${input_base}_${now}.log"
+
+
+# ============================================================
+# Run decoder on HDF5 file
+# ============================================================
+
+echo "==== Running lar on HDF5 input ===="
+echo "Command:"
+echo "LD_PRELOAD=$XROOTD_LIB/libXrdPosixPreload.so lar -c $FCL_FILE $PFN"
+
+set +e
+
+LD_PRELOAD="$XROOTD_LIB/libXrdPosixPreload.so" \
+lar -c "$FCL_FILE" "$PFN" > "$log_file" 2>&1
+
+lar_exit=$?
+
+set -e
+
+echo "==== Last 100 lines of lar log ===="
+tail -100 "$log_file" || true
+
+echo "lar exit code = $lar_exit"
+
+
+# ============================================================
+# Mark input as processed only if lar succeeded
+# ============================================================
+
+if [ "$lar_exit" -eq 0 ]; then
+  echo "$PFN" > justin-processed-pfns.txt
+  jobscript_exit=0
+else
+  jobscript_exit=1
+fi
+
+
+# ============================================================
+# Package logs
+# ============================================================
+
+safe_jobsub_id="$(echo "${JUSTIN_JOBSUB_ID:-unknown_jobsub_id}" | sed 's/@/_/g')"
+
+tar zcf "${safe_jobsub_id}.logs.tgz" \
+  *.log \
+  all-input-dids.txt \
+  justin-processed-pfns.txt \
+  2>/dev/null || true
+
+
+# ============================================================
+# Finish
+# ============================================================
+
+echo "==== Output files ===="
+ls -lh
+
+echo "==== Job finished ===="
+date
+
+exit "$jobscript_exit"
+```
