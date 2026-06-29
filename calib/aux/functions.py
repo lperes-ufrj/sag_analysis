@@ -30,3 +30,5 @@ def prob_crosstalk_func(k_arr, L, p):
             y_raw.append(np.exp(-L) * summ)
     return np.array(y_raw)
 
+def gaussian_integral(sigma):
+    return math.sqrt(2*math.pi) * sigma
