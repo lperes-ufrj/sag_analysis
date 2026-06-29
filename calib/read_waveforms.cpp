@@ -12,7 +12,6 @@
 #include "aux/waveform_utils.h"
 #include "TStyle.h"
 
-
 /*
     Channels of interest — SPE calibration (run 039357)
 
@@ -29,10 +28,11 @@
         M8 ch1 -> 2081
  */
 
-const int CHANNELS[4] = {2070, 2071, 2080, 2081};
+const int CHANNELS[] = {2070, 2071, 2080, 2081};  
+const int NCH = sizeof(CHANNELS) / sizeof(CHANNELS[0]);
 
 int channel_index(unsigned int ch){
-    for (int k = 0; k < 4; k++)
+    for (int k = 0; k < NCH; k++)
         if (CHANNELS[k] == ch) return k;
     return -1;
 }
@@ -93,8 +93,8 @@ int main(){
     TFile* fraw = new TFile(".roots/metrics_raw.root",    "RECREATE");
     TFile* fsel = new TFile(".roots/metrics_select.root", "RECREATE");
 
-    ChannelData ch[4];
-    for (int k = 0; k < 4; k++){
+    ChannelData ch[NCH];
+    for (int k = 0; k < NCH; k++){
         ch[k].channel = CHANNELS[k];
 
         ch[k].h_raw = new TH2F(Form("h_raw_%d",  CHANNELS[k]),
@@ -201,7 +201,7 @@ int main(){
 
     // persistence plots: raw and selected for each channel
     gStyle->SetOptStat(0); // no stats on plots
-    for (int k = 0; k < 4; k++){
+    for (int k = 0; k < NCH; k++){
         TCanvas* cp = new TCanvas("cp", "cp", 1200, 700);
         cp->SetLogz();
         ch[k].h_raw->Draw("colz");
@@ -216,11 +216,11 @@ int main(){
     }
 
     fraw->cd();
-    for (int k = 0; k < 4; k++) ch[k].traw->Write();
+    for (int k = 0; k < NCH; k++) ch[k].traw->Write();
     fraw->Close();
 
     fsel->cd();
-    for (int k = 0; k < 4; k++) ch[k].tsel->Write();
+    for (int k = 0; k < NCH; k++) ch[k].tsel->Write();
     fsel->Close();
 
     delete run_calib;
