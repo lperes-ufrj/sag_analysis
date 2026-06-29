@@ -32,3 +32,29 @@ double noise(const std::vector<short>& adc, short n, double baseline){
     noise = std::sqrt(sqr_dif / n);
     return noise;
 }
+
+double compute_integral(const std::vector<short>& adc, double baseline, int n1, int n2) {
+    double integral = 0.0;
+    int sz = adc.size();
+    int end = std::min(sz, n2 + 1);
+    
+    for (int i = n1; i < end; ++i) {
+        integral += (adc[i] - baseline);
+    }
+    return integral;
+}
+
+void compute_minmax(const std::vector<short>& adc, double baseline, int n1, int n2, double& vmin, double& vmax) {
+    vmin = 1e9;   // initialize with high value
+    vmax = -1e9; // initialize with low value
+    
+    int sz = adc.size();
+    if (sz == 0 || n1 >= sz) return;
+    
+    int end = std::min(sz, n2 + 1);
+    for (int i = n1; i < end; ++i) {
+        double val = adc[i] - baseline;
+        if (val < vmin) vmin = val;
+        if (val > vmax) vmax = val;
+    }
+}

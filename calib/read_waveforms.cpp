@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include "aux/waveform_utils.cpp" 
+#include "aux/waveform_utils.h" 
 #include "TStyle.h"
  
 
@@ -50,6 +50,26 @@ int main(){
 
 
     int n_ch = 0;
+
+    // output .root
+    TFile* fout = new TFile("metrics_ch1050.root", "RECREATE");
+    TTree* tout = new TTree("Metrics", "per-waveform metrics, channel 1050");
+
+    double o_baseline, o_noise, o_integral;
+    double o_pre_min, o_pre_max, o_sig_min, o_sig_max, o_post_min, o_post_max;
+    short  o_mode;
+
+    tout->Branch("mode",     &o_mode);
+    tout->Branch("baseline", &o_baseline);
+    tout->Branch("noise",    &o_noise);
+    tout->Branch("integral", &o_integral);
+    tout->Branch("pre_min",  &o_pre_min);
+    tout->Branch("pre_max",  &o_pre_max);
+    tout->Branch("sig_min",  &o_sig_min);
+    tout->Branch("sig_max",  &o_sig_max);
+    tout->Branch("post_min", &o_post_min);
+    tout->Branch("post_max", &o_post_max);
+
     for (Long64_t i = 0; i < nEntries; ++i){
         run_calib->GetEntry(i);
 
@@ -66,6 +86,16 @@ int main(){
         compute_minmax(*adc, baseline, 0,   239,  pre_min,  pre_max);   // pre-signal (n=240)
         compute_minmax(*adc, baseline, 300, 1023, sig_min,  sig_max);   // signal
         compute_minmax(*adc, baseline, 350, 1023, post_min, post_max);  // post-signal
+
+        // save in output.root
+        o_mode     = mode;
+        o_baseline = baseline;
+        o_noise    = std;
+        o_integral = integral;
+        o_pre_min  = pre_min;  o_pre_max  = pre_max;
+        o_sig_min  = sig_min;  o_sig_max  = sig_max;
+        o_post_min = post_min; o_post_max = post_max;
+        tout->Fill();
 
         for (int s = 0; s < n; s++)
             h2->Fill(s, (*adc)[s] - baseline);
@@ -94,6 +124,8 @@ int main(){
             leg->AddEntry((TObject*)nullptr, Form("moda = %d", mode), "");
             leg->AddEntry((TObject*)nullptr, Form("baseline = %.1f", baseline), "");
             leg->AddEntry((TObject*)nullptr, Form("noise = %.2f", std), "");
+            leg->AddEntry((TObject*)nullptr, Form("integral = %.2f", integral), "");
+            
             leg->Draw();
 
             c->SaveAs(Form("plots/raw_wfs/wf_%lld.png", i));
@@ -104,10 +136,14 @@ int main(){
     }
 
     TCanvas* cp = new TCanvas("cp", "cp", 1200, 700);
-    cp->SetLogz();              // escala de cor log, como no plot que você quer reproduzir
+    cp->SetLogz();              
     h2->Draw("colz");
-    cp->SaveAs("plots/ADC-baseline_1050.png");
+    cp->SaveAs("plots/adc-baseline/ADC-baseline_1050.png");
     delete cp; delete h2;
+
+    fout->cd();      
+    tout->Write();   
+    fout->Close();  
 
     delete run_calib;
     return 0;
