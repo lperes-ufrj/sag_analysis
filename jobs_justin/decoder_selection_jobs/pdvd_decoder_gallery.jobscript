@@ -1,19 +1,23 @@
 #!/bin/bash
 
 : <<'EOF'
-justin simple-workflow \
-  --mql "files from vd-protodune:vd-protodune_39510 ordered limit 50" \
-  --jobscript test_pdvd_decoder_gallery.jobscript \
-  --description "ProtoDUNE-VD decoder plus Gallery waveform extraction: run 39510, 0 kV" \
-  --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
-  --rss-mib 8000 \
-  --wall 14400 \
-  --scope usertests \
-  --lifetime-days 7 \
-  --output-pattern "*_gallery.root:${FNALURL}${USERF}" \
-  --output-pattern "*_decoder_gallery_logs.tgz:${FNALURL}${USERF}"
-EOF
 
+# Example full-run submission:
+
+justin simple-workflow \
+--mql "files from vd-protodune:vd-protodune_39511 ordered limit 1" \
+--jobscript pdvd_decoder_gallery.jobscript \
+--description "ProtoDUNE-VD decoder plus Gallery waveform extraction: run 39511, 10 kV" \
+--env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
+--env OUTPUT_TAG="10kV" \
+--rss-mib 8000 \
+--wall 14400 \
+--scope usertests \
+--lifetime-days 7 \
+--output-pattern "*_10kV_gallery.root:${FNALURL}${USERF}" \
+--output-pattern "*_10kV_decoder_gallery_logs.tgz:${FNALURL}${USERF}"
+
+EOF
 
 FCL_FILE="${FCL_FILE:-${INPUT_TAR_DIR_LOCAL}/get_pds.fcl}"
 GALLERY_MACRO="${GALLERY_MACRO:-${INPUT_TAR_DIR_LOCAL}/gallery_pdvddaphne.C}"
@@ -23,20 +27,20 @@ echo "FCL_FILE      = ${FCL_FILE}"
 echo "GALLERY_MACRO = ${GALLERY_MACRO}"
 
 if [ ! -f "${FCL_FILE}" ]; then
-    echo "ERROR: FCL file not found: ${FCL_FILE}"
-    exit 1
+echo "ERROR: FCL file not found: ${FCL_FILE}"
+exit 1
 fi
 
 if [ ! -f "${GALLERY_MACRO}" ]; then
-    echo "ERROR: Gallery macro not found: ${GALLERY_MACRO}"
-    exit 1
+echo "ERROR: Gallery macro not found: ${GALLERY_MACRO}"
+exit 1
 fi
 
 did_pfn_rse="$("${JUSTIN_PATH}/justin-get-file")"
 
 if [ -z "${did_pfn_rse}" ]; then
-    echo "No input file available."
-    exit 0
+echo "No input file available."
+exit 0
 fi
 
 did="$(echo "${did_pfn_rse}" | awk '{print $1}')"
@@ -45,18 +49,27 @@ pfn="$(echo "${did_pfn_rse}" | awk '{print $2}')"
 echo "Input DID: ${did}"
 echo "Input PFN: ${pfn}"
 
+# Calibration examples: MX04, M5_1, C7_M3_M4.
+
+# Electric-field examples: 0kV, 40kV, 155p7kV.
+
+OUTPUT_TAG="${OUTPUT_TAG:-unknown}"
+OUTPUT_TAG="$(printf '%s' "${OUTPUT_TAG}" | sed 's/[^A-Za-z0-9._-]/_/g')"
+
+echo "Output tag: ${OUTPUT_TAG}"
+
 input_file="$(basename "${pfn}")"
 stem="${input_file%.hdf5}"
 
-decoder_file="${stem}_decoder_test.root"
-gallery_file="${stem}_gallery.root"
+decoder_file="${stem}_${OUTPUT_TAG}_decoder.root"
+gallery_file="${stem}_${OUTPUT_TAG}_gallery.root"
 
-decoder_log="${stem}_decoder_test.log"
-gallery_log="${stem}_gallery.log"
-log_archive="${stem}_decoder_gallery_logs.tgz"
+decoder_log="${stem}_${OUTPUT_TAG}_decoder.log"
+gallery_log="${stem}_${OUTPUT_TAG}_gallery.log"
+log_archive="${stem}_${OUTPUT_TAG}_decoder_gallery_logs.tgz"
 
-input_did_file="${stem}_input-dids.txt"
-processed_pfn_file="${stem}_processed-pfns.txt"
+input_did_file="${stem}_${OUTPUT_TAG}_input-dids.txt"
+processed_pfn_file="${stem}_${OUTPUT_TAG}_processed-pfns.txt"
 
 echo "${did}" > "${input_did_file}"
 echo "${pfn}" > "${processed_pfn_file}"
@@ -64,17 +77,20 @@ echo "${pfn}" > "${processed_pfn_file}"
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 setup dunesw v10_17_00d00 -q e26:prof
 
-ups active | grep "gallery" 
+ups active | grep "gallery"
 
 echo "=== Stage 1: decoder ==="
 
 (
-    export LD_PRELOAD="${XROOTD_LIB}/libXrdPosixPreload.so"
+export LD_PRELOAD="${XROOTD_LIB}/libXrdPosixPreload.so"
 
-    echo "Running decoder:"
-    echo "lar -c ${FCL_FILE} -o ${decoder_file} ${pfn}"
 
-    lar -c "${FCL_FILE}" -o "${decoder_file}" "${pfn}"
+echo "Running decoder:"
+echo "lar -c ${FCL_FILE} -o ${decoder_file} ${pfn}"
+
+lar -c "${FCL_FILE}" -o "${decoder_file}" "${pfn}"
+
+
 ) > "${decoder_log}" 2>&1
 
 decoder_exit=$?
@@ -82,25 +98,29 @@ decoder_exit=$?
 tail -100 "${decoder_log}"
 
 if [ "${decoder_exit}" -ne 0 ]; then
-    echo "ERROR: decoder failed with exit code ${decoder_exit}"
+echo "ERROR: decoder failed with exit code ${decoder_exit}"
 
-    tar -czf "${log_archive}" \
-        "${decoder_log}" \
-        "${input_did_file}" \
-        "${processed_pfn_file}"
+tar -czf "${log_archive}" \
+    "${decoder_log}" \
+    "${input_did_file}" \
+    "${processed_pfn_file}"
 
-    exit "${decoder_exit}"
+exit "${decoder_exit}"
+
+
 fi
 
 if [ ! -s "${decoder_file}" ]; then
-    echo "ERROR: decoder ROOT output was not created."
+echo "ERROR: decoder ROOT output was not created."
 
-    tar -czf "${log_archive}" \
-        "${decoder_log}" \
-        "${input_did_file}" \
-        "${processed_pfn_file}"
+tar -czf "${log_archive}" \
+    "${decoder_log}" \
+    "${input_did_file}" \
+    "${processed_pfn_file}"
 
-    exit 1
+exit 1
+
+
 fi
 
 echo "Decoder output:"
@@ -109,11 +129,14 @@ ls -lh "${decoder_file}"
 echo "=== Stage 2: Gallery waveform extraction ==="
 
 (
-    echo "Running Gallery:"
-    echo "root -l -b -q ${GALLERY_MACRO}+(\"${decoder_file}\",\"${gallery_file}\")"
+echo "Running Gallery:"
+echo "root -l -b -q ${GALLERY_MACRO}+(\"${decoder_file}\",\"${gallery_file}\")"
 
-    root -l -b -q \
-        "${GALLERY_MACRO}+(\"${decoder_file}\",\"${gallery_file}\")"
+
+root -l -b -q \
+    "${GALLERY_MACRO}+(\"${decoder_file}\",\"${gallery_file}\")"
+
+
 ) > "${gallery_log}" 2>&1
 
 gallery_exit=$?
@@ -121,33 +144,40 @@ gallery_exit=$?
 tail -100 "${gallery_log}"
 
 if [ "${gallery_exit}" -ne 0 ]; then
-    echo "ERROR: Gallery failed with exit code ${gallery_exit}"
+echo "ERROR: Gallery failed with exit code ${gallery_exit}"
 
-    tar -czf "${log_archive}" \
-        "${decoder_log}" \
-        "${gallery_log}" \
-        "${input_did_file}" \
-        "${processed_pfn_file}"
 
-    exit "${gallery_exit}"
+tar -czf "${log_archive}" \
+    "${decoder_log}" \
+    "${gallery_log}" \
+    "${input_did_file}" \
+    "${processed_pfn_file}"
+
+exit "${gallery_exit}"
+
+
 fi
 
 if [ ! -s "${gallery_file}" ]; then
-    echo "ERROR: Gallery ROOT output was not created."
+echo "ERROR: Gallery ROOT output was not created."
 
-    tar -czf "${log_archive}" \
-        "${decoder_log}" \
-        "${gallery_log}" \
-        "${input_did_file}" \
-        "${processed_pfn_file}"
 
-    exit 1
+tar -czf "${log_archive}" \
+    "${decoder_log}" \
+    "${gallery_log}" \
+    "${input_did_file}" \
+    "${processed_pfn_file}"
+
+exit 1
+
+
 fi
 
 echo "Gallery output:"
 ls -lh "${gallery_file}"
 
-# Remove the intermediate art/ROOT decoder output.
+# Do not transfer the intermediate decoder ROOT file.
+
 rm -f "${decoder_file}"
 
 tar -czf "${log_archive}" \
