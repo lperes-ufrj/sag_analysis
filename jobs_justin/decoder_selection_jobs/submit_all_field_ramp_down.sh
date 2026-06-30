@@ -24,6 +24,7 @@ justin simple-workflow \
   --mql "files from vd-protodune:vd-protodune_${RUN} ordered limit 50" \
   --jobscript pdvd_decoder_gallery.jobscript \
   --description "ProtoDUNE-VD decoder plus Gallery waveform extraction: ramp down, run ${RUN}, ${FIELD}" \
+  --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
   --env OUTPUT_TAG="${FIELD}" \
   --rss-mib 8000 \
   --wall 14400 \
