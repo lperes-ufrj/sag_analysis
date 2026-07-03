@@ -11,6 +11,7 @@
 #include <algorithm>
 #include "aux/waveform_utils.h"
 #include "TStyle.h"
+#include <string>
 
 /*
     Channels of interest — SPE calibration (run 039357)
@@ -28,7 +29,8 @@
         M8 ch1 -> 2081
  */
 
-const int CHANNELS[] = {2070, 2071, 2080, 2081};  
+
+const int CHANNELS[] = {2080, 2081};//, 2070, 2071};  
 const int NCH = sizeof(CHANNELS) / sizeof(CHANNELS[0]);
 
 int channel_index(unsigned int ch){
@@ -71,7 +73,14 @@ int main(){
 
     TChain* run_calib = new TChain("WaveformTree");
 
-    run_calib->Add(".roots/np02vd_raw_run039357_*_gallery.root"); // read all root files in order
+    // user input run number
+    std::string run;
+    std::cout << "Enter run number: ";
+    std::cin >> run;
+
+    std::string input_pattern = ".roots/17438/np02vd_raw_run" + run + "*_gallery.root";
+
+    run_calib->Add(input_pattern.c_str()); // read all root files in order
 
     // see amount of entries
     const Long64_t nEntries = run_calib->GetEntries();
@@ -90,8 +99,11 @@ int main(){
     run_calib->SetBranchAddress("adc", &adc);
 
     // output files: one tree per channel inside each
-    TFile* fraw = new TFile(".roots/metrics_raw.root",    "RECREATE");
-    TFile* fsel = new TFile(".roots/metrics_select.root", "RECREATE");
+    std::string out_raw = ".roots/metrics_raw/run" + run + "_metrics_raw.root";
+    std::string out_sel = ".roots/metrics_select/run" + run + "_metrics_select.root";
+
+    TFile* fraw = new TFile(out_raw.c_str(), "RECREATE");
+    TFile* fsel = new TFile(out_sel.c_str(), "RECREATE");
 
     ChannelData ch[NCH];
     for (int k = 0; k < NCH; k++){
@@ -181,18 +193,19 @@ int main(){
             for (int s=0; s < n; s++)
                 h->SetBinContent(s+1, (*adc)[s]);
 
-            TCanvas* c = new TCanvas("c", "c", 1200, 400);
-            h->Draw("L");
-            h->SetStats(0);
-            TLegend* leg = new TLegend(0.65, 0.7, 0.88, 0.88); // x1, y1, x2, y2
-            leg->AddEntry((TObject*)nullptr, Form("moda = %d", mode), "");
-            leg->AddEntry((TObject*)nullptr, Form("baseline = %.1f", baseline), "");
-            leg->AddEntry((TObject*)nullptr, Form("noise = %.2f", std), "");
-            leg->AddEntry((TObject*)nullptr, Form("integral = %.2f", integral), "");
-            leg->Draw();
+            // TCanvas* c = new TCanvas("c", "c", 1200, 400);
+            // h->Draw("L");
+            // h->SetStats(0);
+            // TLegend* leg = new TLegend(0.65, 0.7, 0.88, 0.88); // x1, y1, x2, y2
+            // leg->AddEntry((TObject*)nullptr, Form("moda = %d", mode), "");
+            // leg->AddEntry((TObject*)nullptr, Form("baseline = %.1f", baseline), "");
+            // leg->AddEntry((TObject*)nullptr, Form("noise = %.2f", std), "");
+            // leg->AddEntry((TObject*)nullptr, Form("integral = %.2f", integral), "");
+            // leg->Draw();
 
-            c->SaveAs(Form("plots/raw_wfs/%d_wf_%lld.png", d.channel, i));
-            delete c; delete h;
+            // std::string plot_dir = "plots/raw_wfs/run" + run + "_" + std::to_string(d.channel) + "_wf_" + std::to_string(i) + ".png";   
+            // c->SaveAs(plot_dir.c_str());
+            // delete c; delete h;
             d.n_saved++;
         }
 
@@ -205,13 +218,13 @@ int main(){
         TCanvas* cp = new TCanvas("cp", "cp", 1200, 700);
         cp->SetLogz();
         ch[k].h_raw->Draw("colz");
-        cp->SaveAs(Form("plots/adc-baseline/%d_ADC-baseline_raw.png", CHANNELS[k]));
+        cp->SaveAs(Form("plots/adc-baseline/run%s_%d_ADC-baseline_raw.png", run.c_str(), CHANNELS[k]));
         delete cp; delete ch[k].h_raw;
 
         TCanvas* cp2 = new TCanvas("cp2", "cp2", 1200, 700);
         cp2->SetLogz();
         ch[k].h_sel->Draw("colz");
-        cp2->SaveAs(Form("plots/adc-baseline/%d_ADC-baseline_selec.png", CHANNELS[k]));
+        cp2->SaveAs(Form("plots/adc-baseline/run%s_%d_ADC-baseline_selec.png", run.c_str(), CHANNELS[k]));
         delete cp2; delete ch[k].h_sel;
     }
 

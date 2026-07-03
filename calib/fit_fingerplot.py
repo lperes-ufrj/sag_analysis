@@ -3,21 +3,29 @@ import numpy as np
 import matplotlib.pyplot as plt        
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
-import aux.functions as fc             
+import aux.functions as fc     
+import os        
 
-def fit_multigauss(f):
+def fit_multigauss(f, run):
 # iterate over all channels
+    mean_spe = []
+    std_spe = []
+
+    # create folder if not exists
+
+    os.makedirs(f"PLOTS/fingerplot/{run}/", exist_ok=True)
+    os.makedirs(f"PLOTS/multigauss/{run}/", exist_ok=True)
+
     for i in range(len(f.keys())):
         integral = f[f.keys()[i]]["integral"].array(library="np")
-        
 
         # Raw fingerplot
-        x_bin = np.linspace(-200, 1200, 120)
+        x_bin = np.linspace(-200, 500, 120)
         plt.hist(integral, bins=x_bin, histtype='step', color='black')
         plt.title(f"{f.keys()[i]} - Fingerplot")
         plt.xlabel("Integral")
         plt.ylabel("Counts")
-        plt.savefig(f"PLOTS/fingerplot/{f.keys()[i]}_fingerplot.png")
+        plt.savefig(f"PLOTS/fingerplot/{run}/{f.keys()[i]}_fingerplot.png")
         plt.close()
 
         # Multigauss fingerplot
@@ -29,24 +37,25 @@ def fit_multigauss(f):
         model = LeastSquares(centers, counts, y_err, fc.multi_gauss)
 
         initial_guesses = {
-        "A0": 200  ,
-        "q0": 0 ,
+        "A0": 140  ,
+        "q0": -30 ,
         "sigma0": 20,
-        "gain":  200 ,
+        "gain":  100 ,
         "sigma1": 10,
         "sigma2": 20,
         "sigma3": 30,
         "sigma4": 40,
         "sigma5": 50,
-        "A1": 200 ,
-        "A2": 150,
-        "A3": 100 ,
-        "A4": 50,
-        "A5": 25 ,
+        "A1": 90 ,
+        "A2": 60,
+        "A3": 20 ,
+        "A4": 10,
+        "A5": 5 ,
         }
 
         # minuit fit
         m = Minuit(model, **initial_guesses)
+        #m.interactive()
         m.migrad()
         m.hesse()
 
@@ -69,10 +78,10 @@ def fit_multigauss(f):
         plt.xlabel("Integral")
         plt.ylabel("Counts")
         plt.legend()
-        plt.savefig(f"PLOTS/multigauss/{f.keys()[i]}_multigauss.png")
+        plt.savefig(f"PLOTS/multigauss/{run}/{f.keys()[i]}_multigauss.png")
         plt.close()
 
-        # crosstalk trial
+        # # crosstalk trial
         # integrals = np.array([fc.gaussian_integral(m.values[f"sigma{i}"]) for i in range(6)])
         # total_int_gauss = np.sum(integrals)
 
@@ -90,7 +99,8 @@ def fit_multigauss(f):
         print(f"Fit Valid: {m.valid}")
         print()
 
-    return
+        mean_spe.append(spe)
+        std_spe.append(spe_err)
 
-
+    return mean_spe, std_spe
 
