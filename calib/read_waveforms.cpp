@@ -78,7 +78,7 @@ int main(){
     std::cout << "Enter run number: ";
     std::cin >> run;
 
-    std::string input_pattern = ".roots/17438/np02vd_raw_run" + run + "*_gallery.root";
+    std::string input_pattern = ".roots/np02vd_raw_run" + run + "*_gallery.root";
 
     run_calib->Add(input_pattern.c_str()); // read all root files in order
 
