@@ -30,7 +30,7 @@
  */
 
 
-const int CHANNELS[] = {2080, 2081};//, 2070, 2071};  
+const int CHANNELS[] = {2070, 2071};//, 2070, 2071};  
 const int NCH = sizeof(CHANNELS) / sizeof(CHANNELS[0]);
 
 int channel_index(unsigned int ch){
@@ -231,10 +231,14 @@ int main(){
     fraw->cd();
     for (int k = 0; k < NCH; k++) ch[k].traw->Write();
     fraw->Close();
+    delete fraw;   // not just Close(): a lingering TFile* left in gROOT's file list
+                   // can make a later RECREATE on the same path append a new TTree
+                   // cycle instead of truly overwriting it
 
     fsel->cd();
     for (int k = 0; k < NCH; k++) ch[k].tsel->Write();
     fsel->Close();
+    delete fsel;
 
     delete run_calib;
     return 0;
