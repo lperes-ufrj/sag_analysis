@@ -51,6 +51,14 @@ public :
    virtual void     Loop(unsigned int targetChannel = 1050, int modeHalfWidth = 8,
                          int skipTicks = 12,
                          double yMin = -50, double yMax = 200);
+   virtual void     ScanCoincidence(const vector<unsigned int> &upperLeftChannels =
+                                       vector<unsigned int>{2070, 2071},
+                                    const vector<unsigned int> &bottomRightChannels =
+                                       vector<unsigned int>{2080, 2081},
+                                    bool printEvents = false,
+                                    int sampleWindow = 10,
+                                    double threshold = 20.0,
+                                    int baselineSamples = 80);
    virtual bool     Notify();
    virtual void     Show(Long64_t entry = -1);
 };
@@ -69,7 +77,7 @@ WaveformReader::WaveformReader(TTree *tree) : fChain(0)
       TChain *chain = new TChain("WaveformTree");
       // Add all gallery ROOT files in the parent directory that match
       // the original naming pattern. Adjust the pattern if needed.
-      int n = chain->Add("../np02vd_raw_run039357_*_gallery.root");
+      int n = chain->Add("../np02vd_raw_run039510_*_gallery.root");
       if (n == 0) {
          // fallback: try adding any ROOT files in parent dir
          chain->Add("../*.root");
