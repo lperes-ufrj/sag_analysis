@@ -2,16 +2,18 @@ CXX ?= c++
 CXXFLAGS := -O3 -Wall -Wextra -pedantic -std=c++17 $(shell root-config --cflags)
 LDLIBS := $(shell root-config --libs)
 
-TARGET := run_coincidence
-SOURCES := run_coincidence.cpp coincidence_lib.cpp
+TARGETS := run_coincidence plot_wfs_coincidence
 HEADERS := coincidence_lib.hpp
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(SOURCES) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -o $@ $(LDLIBS)
+run_coincidence: run_coincidence.cpp coincidence_lib.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) run_coincidence.cpp coincidence_lib.cpp -o $@ $(LDLIBS)
+
+plot_wfs_coincidence: plot_wfs_coincidence.cpp coincidence_lib.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) plot_wfs_coincidence.cpp coincidence_lib.cpp -o $@ $(LDLIBS)
 
 clean:
-	$(RM) $(TARGET)
+	$(RM) $(TARGETS)
