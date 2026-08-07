@@ -5,17 +5,17 @@
 # Example full-run submission:
 
 justin simple-workflow \
---mql "files from vd-protodune:vd-protodune_39511 ordered limit 1" \
+--mql "files from vd-protodune:vd-protodune_39366 ordered limit 10" \
 --jobscript pdvd_decoder_gallery.jobscript \
---description "ProtoDUNE-VD decoder plus Gallery waveform extraction: run 39511, 10 kV" \
+--description "ProtoDUNE-VD decoder plus Gallery waveform extraction: run 39366, Calib. M8" \
 --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
---env OUTPUT_TAG="10kV" \
+--env OUTPUT_TAG="M8_CALIB" \
 --rss-mib 8000 \
 --wall 14400 \
 --scope usertests \
 --lifetime-days 7 \
---output-pattern "*_10kV_gallery.root:${FNALURL}${USERF}" \
---output-pattern "*_10kV_decoder_gallery_logs.tgz:${FNALURL}${USERF}"
+--output-pattern "*_M8_CALIB_gallery.root:${FNALURL}${USERF}" \
+--output-pattern "*_M8_CALIB_decoder_gallery_logs.tgz:${FNALURL}${USERF}"
 
 EOF
 
