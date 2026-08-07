@@ -536,9 +536,11 @@ void plotAndSaveStatistics(
     zero_lines.reserve(plot_channels.size());
     legends.reserve(plot_channels.size());
 
-    const std::array<int, 10> colors{
-        kBlue + 1, kOrange + 7, kGreen + 2, kRed + 1, kViolet + 1,
-        kBrown + 1, kPink + 7, kGray + 2, kCyan + 2, kBlack
+    const std::array<int, 4> colors{
+        kBlue + 1,
+        kOrange + 7,
+        kGreen + 2,
+        kRed + 1,
     };
 
     for (std::size_t panel = 0; panel < plot_channels.size(); ++panel) {
