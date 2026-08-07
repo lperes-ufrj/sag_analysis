@@ -1,0 +1,5 @@
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0000_df-s04-d0_dw_0_20250919T105328_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0001_df-s04-d0_dw_0_20250919T105430_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0002_df-s04-d0_dw_0_20250919T105532_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0003_df-s04-d0_dw_0_20250919T105634_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0004_df-s04-d0_dw_0_20250919T105736_100kV_gallery.root
