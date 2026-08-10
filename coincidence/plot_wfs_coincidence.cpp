@@ -470,6 +470,7 @@ void plotDensity(
     histogram.GetXaxis()->SetTitle("Sample Index");
     histogram.GetYaxis()->SetTitle("ADC Value");
     histogram.GetZaxis()->SetTitle("Counts (log scale)");
+    double filled_samples = 0.0;
     for (const auto &record : records) {
         for (std::size_t sample = 0; sample < record.adc.size(); ++sample) {
             histogram.AddBinContent(
@@ -478,8 +479,12 @@ void plotDensity(
                     static_cast<int>(record.adc[sample] - adc_min) + 1
                 )
             );
+            ++filled_samples;
         }
     }
+    // AddBinContent updates the bins directly but, unlike Fill, does not update
+    // the entry count. ROOT's COLZ painter skips a histogram with zero entries.
+    histogram.SetEntries(filled_samples);
 
     TCanvas canvas(("canvas_" + suffix).c_str(), "", 1800, 700);
     canvas.SetLeftMargin(0.10);
