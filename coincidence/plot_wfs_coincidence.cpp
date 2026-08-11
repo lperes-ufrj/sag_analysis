@@ -33,7 +33,7 @@ namespace fs = std::filesystem;
 
 namespace {
 
-constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 0.0;
+constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
 const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
 const std::string CSV_SUFFIX =
     "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
@@ -130,7 +130,7 @@ void printUsage(const char *program)
         << "Options:\n"
         << "  --config FILE                 Waveform interval INI file\n"
         << "  --output-dir DIR             Output directory\n"
-        << "  --max-auxiliary-amplitude N  Noise/post-signal limit in ADC (default 500)\n"
+        << "  --max-auxiliary-amplitude N  Noise/post-signal limit in ADC (default: 500)\n"
         << "  -h, --help                    Show this help\n";
 }
 
