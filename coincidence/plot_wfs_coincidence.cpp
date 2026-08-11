@@ -33,11 +33,11 @@ namespace fs = std::filesystem;
 
 namespace {
 
-constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
+constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 0.0;
 const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
 const std::string CSV_SUFFIX =
     "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
-    "save_2070-2071-2080-2081_window_10_ticks_min_amplitude_1000_adc.csv";
+    "save_2070-2071-2080-2081_window_10_ticks_min_amplitude_0_adc.csv";
 
 struct Options {
     std::vector<fs::path> input_lists;
