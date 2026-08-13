@@ -105,7 +105,11 @@ Arguments parseArguments(int argc, char **argv)
 {
     Arguments args;
     const fs::path executable = fs::absolute(argv[0]);
-    args.config = executable.parent_path() / "waveform_intervals.ini";
+    const fs::path executable_dir = executable.parent_path();
+    const fs::path program_dir = executable_dir.filename() == "bin"
+        ? executable_dir.parent_path() / "coincidence"
+        : executable_dir;
+    args.config = program_dir / "waveform_intervals.ini";
 
     for (int index = 1; index < argc; ++index) {
         const std::string option = argv[index];

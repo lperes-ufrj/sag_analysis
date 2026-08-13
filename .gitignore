@@ -1,7 +1,8 @@
 # Large outputs / datasets (do not commit)
 *.root
-<<<<<<< HEAD
 *.db
-=======
 *.npz
->>>>>>> 5799194411d2c296569e001b035faba24e70cfc5
+*.sh
+
+# Compiled binaries
+/bin/

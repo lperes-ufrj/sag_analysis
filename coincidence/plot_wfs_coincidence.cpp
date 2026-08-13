@@ -35,7 +35,7 @@ namespace {
 
 constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
 const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
-const std::string CSV_SUFFIX =
+const std::string DEFAULT_CSV_SUFFIX =
     "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
     "save_2070-2071-2080-2081_window_10_ticks_min_amplitude_0_adc.csv";
 
@@ -43,6 +43,7 @@ struct Options {
     std::vector<fs::path> input_lists;
     fs::path config;
     fs::path output_dir;
+    std::string csv_suffix = DEFAULT_CSV_SUFFIX;
     double max_auxiliary_amplitude = DEFAULT_MAX_AUXILIARY_AMPLITUDE;
 };
 
@@ -130,6 +131,7 @@ void printUsage(const char *program)
         << "Options:\n"
         << "  --config FILE                 Waveform interval INI file\n"
         << "  --output-dir DIR             Output directory\n"
+        << "  --csv-suffix SUFFIX          Selection CSV filename suffix\n"
         << "  --max-auxiliary-amplitude N  Noise/post-signal limit in ADC (default: 500)\n"
         << "  -h, --help                    Show this help\n";
 }
@@ -147,10 +149,12 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
             std::exit(0);
         }
         if (argument == "--config" || argument == "--output-dir"
+            || argument == "--csv-suffix"
             || argument == "--max-auxiliary-amplitude") {
             if (++index >= argc) throw std::runtime_error("Missing value for " + argument);
             if (argument == "--config") options.config = argv[index];
             else if (argument == "--output-dir") options.output_dir = argv[index];
+            else if (argument == "--csv-suffix") options.csv_suffix = argv[index];
             else options.max_auxiliary_amplitude = std::stod(argv[index]);
             continue;
         }
@@ -175,6 +179,10 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
     }
     options.config = fs::absolute(options.config);
     options.output_dir = fs::absolute(options.output_dir);
+    if (options.csv_suffix.size() <= 4
+        || options.csv_suffix.substr(options.csv_suffix.size() - 4) != ".csv") {
+        throw std::runtime_error("CSV suffix must end in .csv");
+    }
     return options;
 }
 
@@ -625,7 +633,7 @@ void processInputList(
         throw std::runtime_error("Input list not found: " + input_list.string());
     }
     const std::string run = inferRun(input_list);
-    const std::string csv_name = "waveforms_run_" + run + "_" + CSV_SUFFIX;
+    const std::string csv_name = "waveforms_run_" + run + "_" + options.csv_suffix;
     fs::path csv_file = input_list.parent_path() / csv_name;
     if (!fs::is_regular_file(csv_file)) csv_file = program_dir / csv_name;
 
@@ -655,7 +663,8 @@ void processInputList(
     const auto records = loadWaveforms(
         *chain, located, analyzer, options.max_auxiliary_amplitude
     );
-    const std::string label = "run_" + run + "_" + CSV_SUFFIX.substr(0, CSV_SUFFIX.size() - 4);
+    const std::string label = "run_" + run + "_"
+        + options.csv_suffix.substr(0, options.csv_suffix.size() - 4);
 
     for (const auto channel : channels) {
         const auto found = records.find(channel);
@@ -672,7 +681,10 @@ int main(int argc, char **argv)
 {
     try {
         const fs::path executable = fs::weakly_canonical(fs::absolute(argv[0]));
-        const fs::path program_dir = executable.parent_path();
+        const fs::path executable_dir = executable.parent_path();
+        const fs::path program_dir = executable_dir.filename() == "bin"
+            ? executable_dir.parent_path() / "coincidence"
+            : executable_dir;
         const fs::path repo_dir = program_dir.parent_path();
         const Options options = parseOptions(argc, argv, program_dir);
         if (!fs::is_regular_file(options.config)) {
