@@ -3,6 +3,7 @@
 *.db
 *.npz
 *.sh
+!analysis/run_plot_allwaveforms.sh
 
 # Compiled binaries
 /bin/
