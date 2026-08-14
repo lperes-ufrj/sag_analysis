@@ -12,6 +12,15 @@
 
 namespace {
 
+constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
+constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
+constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
+
+struct PeakCandidate {
+    int tick = -1;
+    double amplitude = 0.0;
+};
+
 std::string trim(const std::string &text)
 {
     const auto first = text.find_first_not_of(" \t\r\n");
@@ -200,6 +209,72 @@ double WaveformAnalyzer::postSignalAmplitude(
 ) const
 {
     return amplitude(waveform, channel, "post_signal");
+}
+
+PeakSearchResult WaveformAnalyzer::findPeak(
+    const std::vector<short> &waveform,
+    unsigned int channel
+) const
+{
+    PeakSearchResult result;
+    if (waveform.size() < 3) return result;
+
+    const double waveform_baseline = noiseBaseline(waveform, channel);
+    const double minimum_height = std::max(
+        MINIMUM_PEAK_HEIGHT_ADC,
+        MINIMUM_PEAK_HEIGHT_SIGMA * noiseRms(waveform, channel)
+    );
+
+    const std::size_t half_window = PEAK_SMOOTHING_WINDOW / 2;
+    std::vector<double> smoothed(waveform.size());
+    for (std::size_t tick = 0; tick < waveform.size(); ++tick) {
+        const std::size_t start = tick > half_window ? tick - half_window : 0;
+        const std::size_t stop = std::min(waveform.size(), tick + half_window + 1);
+        const double sum = std::accumulate(
+            waveform.begin() + static_cast<std::ptrdiff_t>(start),
+            waveform.begin() + static_cast<std::ptrdiff_t>(stop),
+            0.0
+        );
+        smoothed[tick] = sum / static_cast<double>(stop - start) - waveform_baseline;
+    }
+
+    std::vector<PeakCandidate> candidates;
+    for (std::size_t tick = 1; tick + 1 < smoothed.size(); ++tick) {
+        const bool is_local_maximum = smoothed[tick] > smoothed[tick - 1]
+            && smoothed[tick] >= smoothed[tick + 1];
+        if (is_local_maximum && smoothed[tick] >= minimum_height) {
+            candidates.push_back({static_cast<int>(tick), smoothed[tick]});
+        }
+    }
+
+    result.peak_count = candidates.size();
+    if (candidates.empty()) return result;
+
+    const auto primary = std::max_element(
+        candidates.begin(), candidates.end(),
+        [](const PeakCandidate &left, const PeakCandidate &right) {
+            return left.amplitude < right.amplitude;
+        }
+    );
+    result.found = true;
+    result.tick = primary->tick;
+    result.amplitude = primary->amplitude;
+
+    const auto [signal_start, signal_stop] = checkedRegion(waveform, channel, "signal");
+    const auto outside_signal = [signal_start, signal_stop](int tick) {
+        return tick < signal_start || tick >= signal_stop;
+    };
+    result.primary_outside_signal_region = outside_signal(primary->tick);
+
+    if (!result.primary_outside_signal_region) {
+        result.additional_outside_signal_region = std::any_of(
+            candidates.begin(), candidates.end(),
+            [&](const PeakCandidate &candidate) {
+                return candidate.tick != primary->tick && outside_signal(candidate.tick);
+            }
+        );
+    }
+    return result;
 }
 
 int WaveformAnalyzer::signalPeakTick(

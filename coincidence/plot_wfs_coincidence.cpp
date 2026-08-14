@@ -34,6 +34,7 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
+constexpr double MAX_FULL_RANGE_AMPLITUDE = 9000.0;
 const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
 const std::string DEFAULT_CSV_SUFFIX =
     "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
@@ -330,6 +331,14 @@ double maximumInRegion(
     return *std::max_element(adc.begin() + start, adc.begin() + stop);
 }
 
+double fullRangeAmplitude(const std::vector<short> &adc, double baseline)
+{
+    if (adc.empty()) {
+        throw std::runtime_error("Cannot calculate amplitude from an empty waveform");
+    }
+    return static_cast<double>(*std::max_element(adc.begin(), adc.end())) - baseline;
+}
+
 RecordsByChannel loadWaveforms(
     TChain &chain,
     const std::vector<LocatedWaveform> &located,
@@ -346,6 +355,9 @@ RecordsByChannel loadWaveforms(
     RecordsByChannel records;
     std::size_t rejected_noise = 0;
     std::size_t rejected_post_signal = 0;
+    std::size_t rejected_full_range_amplitude = 0;
+    std::size_t rejected_primary_peak_outside_signal = 0;
+    std::size_t rejected_additional_peak_outside_signal = 0;
     std::size_t rejected_total = 0;
     std::size_t total = 0;
 
@@ -362,11 +374,23 @@ RecordsByChannel loadWaveforms(
         ) - baseline;
         const bool fails_noise = noise_amplitude > max_auxiliary_amplitude;
         const bool fails_post_signal = post_signal_amplitude > max_auxiliary_amplitude;
+        const double amplitude = fullRangeAmplitude(*adc, baseline);
+        const bool fails_full_range_amplitude = amplitude > MAX_FULL_RANGE_AMPLITUDE;
+        const PeakSearchResult peak = analyzer.findPeak(*adc, item.key.channel);
+        const bool fails_primary_peak = peak.primary_outside_signal_region;
+        const bool fails_additional_peak = peak.additional_outside_signal_region;
 
         rejected_noise += item.multiplicity * static_cast<std::size_t>(fails_noise);
         rejected_post_signal += item.multiplicity * static_cast<std::size_t>(fails_post_signal);
+        rejected_full_range_amplitude += item.multiplicity
+            * static_cast<std::size_t>(fails_full_range_amplitude);
+        rejected_primary_peak_outside_signal += item.multiplicity
+            * static_cast<std::size_t>(fails_primary_peak);
+        rejected_additional_peak_outside_signal += item.multiplicity
+            * static_cast<std::size_t>(fails_additional_peak);
         total += item.multiplicity;
-        if (fails_noise || fails_post_signal) {
+        if (fails_noise || fails_post_signal || fails_full_range_amplitude
+            || fails_primary_peak || fails_additional_peak) {
             rejected_total += item.multiplicity;
             continue;
         }
@@ -375,12 +399,21 @@ RecordsByChannel loadWaveforms(
         }
     }
 
-    std::cout << "Retained " << total - rejected_total << " of " << total
-              << " selected waveforms\n"
-              << "Rejected " << rejected_total << " waveforms: " << rejected_noise
-              << " exceeded the noise-region limit and " << rejected_post_signal
-              << " exceeded the post-signal limit of " << max_auxiliary_amplitude
-              << " ADC\n";
+    std::cout
+        << "Retained " << total - rejected_total << " of " << total
+        << " selected waveforms\n"
+        << "Rejected " << rejected_total
+        << " waveforms in total (cut categories may overlap):\n"
+        << "  Noise-region amplitude above " << max_auxiliary_amplitude
+        << " ADC: " << rejected_noise << '\n'
+        << "  Post-signal amplitude above " << max_auxiliary_amplitude
+        << " ADC: " << rejected_post_signal << '\n'
+        << "  Full-range amplitude above " << MAX_FULL_RANGE_AMPLITUDE
+        << " ADC over baseline: " << rejected_full_range_amplitude << '\n'
+        << "  Primary peak outside signal region: "
+        << rejected_primary_peak_outside_signal << '\n'
+        << "  Primary peak inside with another peak outside signal region: "
+        << rejected_additional_peak_outside_signal << '\n';
     return records;
 }
 

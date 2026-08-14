@@ -1,6 +1,7 @@
 #ifndef COINCIDENCE_LIB_HPP
 #define COINCIDENCE_LIB_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -11,6 +12,15 @@
 class TChain;
 
 inline constexpr std::int64_t SAMPLE_PERIOD_NS = 16;
+
+struct PeakSearchResult {
+    bool found = false;
+    int tick = -1;
+    double amplitude = 0.0;
+    std::size_t peak_count = 0;
+    bool primary_outside_signal_region = false;
+    bool additional_outside_signal_region = false;
+};
 
 class WaveformAnalyzer {
 public:
@@ -31,6 +41,10 @@ public:
     ) const;
     double preSignalAmplitude(const std::vector<short> &waveform, unsigned int channel) const;
     double postSignalAmplitude(const std::vector<short> &waveform, unsigned int channel) const;
+    PeakSearchResult findPeak(
+        const std::vector<short> &waveform,
+        unsigned int channel
+    ) const;
     int signalPeakTick(const std::vector<short> &waveform, unsigned int channel) const;
     double noiseRms(const std::vector<short> &waveform, unsigned int channel) const;
     int pulseStart(const std::vector<short> &waveform, unsigned int channel) const;
