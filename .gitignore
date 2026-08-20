@@ -3,7 +3,14 @@
 *.db
 *.npz
 *.sh
+*.pdf
+*.png
+
+# Exceptions
 !analysis/run_plot_allwaveforms.sh
+!plots/
+!plots/**/*.pdf
+!plots/**/*.png
 
 # Compiled binaries
 /bin/

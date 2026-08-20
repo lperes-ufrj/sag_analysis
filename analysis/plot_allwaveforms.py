@@ -54,7 +54,12 @@ def read_input_list(input_list: Path) -> tuple[str, list[Path]]:
     if not input_list.is_file():
         raise FileNotFoundError(f"Input list not found: {input_list}")
 
-    match = re.search(r"input_run([0-9]{6})\.txt$", input_list.name)
+    match = (
+    re.search(r"input_run([0-9]{6})\.txt$", input_list.name)
+    or re.search(r"testt_run([0-9]{6})\.txt$", input_list.name)
+    )
+
+
     if not match:
         raise ValueError(
             "Input-list filename must have the form input_run039510.txt"
