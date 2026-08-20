@@ -148,7 +148,7 @@ int main(){
         double integral = compute_integral(*adc, baseline, 255, 265);
         double pre_min, pre_max, sig_min, sig_max, post_min, post_max;
         compute_minmax(*adc, baseline, 0,   239,  pre_min,  pre_max);   // pre-signal (n=240)
-        compute_minmax(*adc, baseline, 300, 1023, sig_min,  sig_max);   // signal
+        compute_minmax(*adc, baseline, 270, 1023, sig_min,  sig_max);   // signal (slides "2 STEP PLUS": window redefined 300 -> 270)
         compute_minmax(*adc, baseline, 350, 1023, post_min, post_max);  // post-signal
 
         // fill this channel's metric variables
@@ -203,7 +203,7 @@ int main(){
             // leg->AddEntry((TObject*)nullptr, Form("integral = %.2f", integral), "");
             // leg->Draw();
 
-            // std::string plot_dir = "plots/raw_wfs/run" + run + "_" + std::to_string(d.channel) + "_wf_" + std::to_string(i) + ".png";   
+            // std::string plot_dir = "output/plots/raw_wfs/run" + run + "_" + std::to_string(d.channel) + "_wf_" + std::to_string(i) + ".png";   
             // c->SaveAs(plot_dir.c_str());
             // delete c; delete h;
             d.n_saved++;
@@ -218,13 +218,13 @@ int main(){
         TCanvas* cp = new TCanvas("cp", "cp", 1200, 700);
         cp->SetLogz();
         ch[k].h_raw->Draw("colz");
-        cp->SaveAs(Form("plots/adc-baseline/run%s_%d_ADC-baseline_raw.png", run.c_str(), CHANNELS[k]));
+        cp->SaveAs(Form("output/plots/adc-baseline/run%s_%d_ADC-baseline_raw.png", run.c_str(), CHANNELS[k]));
         delete cp; delete ch[k].h_raw;
 
         TCanvas* cp2 = new TCanvas("cp2", "cp2", 1200, 700);
         cp2->SetLogz();
         ch[k].h_sel->Draw("colz");
-        cp2->SaveAs(Form("plots/adc-baseline/run%s_%d_ADC-baseline_selec.png", run.c_str(), CHANNELS[k]));
+        cp2->SaveAs(Form("output/plots/adc-baseline/run%s_%d_ADC-baseline_selec.png", run.c_str(), CHANNELS[k]));
         delete cp2; delete ch[k].h_sel;
     }
 

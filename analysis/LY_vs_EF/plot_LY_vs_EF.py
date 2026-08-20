@@ -7,6 +7,7 @@ from matplotlib.colors import LogNorm
 import numpy as np
 import pandas as pd
 import re
+import time
 
 path_templates = Path("../../filter/templates_large_pulses/")
 templates_ch_2070_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
@@ -21,7 +22,6 @@ list_templates_charge = {2070 : templates_ch_2070_charge,
 
 path_waveforms = Path("../../coincidence/selected_waveforms/")
 csv_files_0_adc = sorted(path_waveforms.glob("channel_*_run_*min_amplitude_0_adc.csv"))
-csv_files_1000_adc = sorted(path_waveforms.glob("channel_*_run_*min_amplitude_1000_adc.csv"))
 
 run_to_efield = {
     # Zero-field reference
@@ -71,41 +71,41 @@ E = [
 
 S1 = [
     1.000,
-    0.906,
-    0.798,
-    0.775,
-    0.751,
-    0.702,
+    0.890,
+    0.792,
+    0.770,
+    0.748,
+    0.698,
     0.665,
-    0.656,
-    0.633,
-    0.634,
+    0.658,
+    0.630,
+    0.638,
 ]
 
 S1_err_low = [
     0.000,
-    0.021,
+    0.022,
     0.035,
-    0.017,
-    0.019,
-    0.016,
+    0.025,
+    0.025,
     0.018,
-    0.020,
-    0.017,
-    0.015,  # partially obscured
+    0.025,
+    0.030,
+    0.024,
+    0.029,
 ]
 
 S1_err_high = [
     0.000,
-    0.022,
-    0.033,
+    0.026,
+    0.038,
+    0.020,
+    0.025,
     0.018,
-    0.021,
-    0.015,
-    0.019,
-    0.022,
-    0.019,
+    0.023,
     0.027,
+    0.022,
+    0.028,
 ]
 
 def Calc_Charge(waveform, template_charge):
@@ -134,30 +134,11 @@ for csv_file in csv_files_0_adc:
         s1_0_0_adc[channel] = charge
 
 
-for csv_file in csv_files_1000_adc:
-    match = re.search(r"channel_(\d+)_run_(\d+)", csv_file.name)
-
-    if not match:
-        continue
-
-    channel = int(match.group(1))
-    run = match.group(2)
-
-    if run == "039510":
-        mean_waveform = pd.read_csv(csv_file)["mean"].to_numpy()
-
-        charge = Calc_Charge(
-            mean_waveform,
-            list_templates_charge[channel],
-        )
-
-        s1_0_1000_adc[channel] = charge
 
 plt.figure(dpi=100)
 
 channel_points_0_adc = defaultdict(lambda: {"efield": [], "relative_s1": []})
 
-channel_points_1000_adc = defaultdict(lambda: {"efield": [], "relative_s1": []})
 
 
 for csv_file in csv_files_0_adc:
@@ -188,51 +169,40 @@ for csv_file in csv_files_0_adc:
         Calc_Charge(mean_waveform, list_templates_charge[channel]) / s1_0_0_adc[channel]
     )
 
-for csv_file in csv_files_1000_adc:
 
-    match = re.search(r"channel_(\d+)_run_(\d+)", csv_file.name)
+points_by_efield = {}
 
-    if not match:
+for channel in sorted(channel_points_0_adc):
+    if channel in (2070, 2071):
         continue
 
-    channel = int(match.group(1))
-    run = match.group(2)
-
-    if channel not in list_templates_charge:
-        print(f"Channel {channel} not found in templates. Skipping.")
-        continue
-    if int(run) not in run_to_efield:
-        print(f"Run {run} not found in run_to_efield. Skipping.")
-        continue
-
-    if channel not in s1_0_1000_adc:
-        print(f"No run 039510 reference found for channel {channel}. Skipping.")
-        continue
-
-    mean_waveform = pd.read_csv(csv_file)["mean"].to_numpy()
-
-    channel_points_1000_adc[channel]["efield"].append(run_to_efield[int(run)])
-    channel_points_1000_adc[channel]["relative_s1"].append(
-        Calc_Charge(mean_waveform, list_templates_charge[channel]) / s1_0_1000_adc[channel]
-    )
-
-for channel in sorted(channel_points_0_adc.keys()):
-    if channel == 2070 or channel == 2071:
-        continue
-    plt.plot(
+    for efield, relative_s1 in zip(
         channel_points_0_adc[channel]["efield"],
         channel_points_0_adc[channel]["relative_s1"],
-        label=f"Channel {channel} 0 ADC", ls='-.',
-    )
+    ):
+        points_by_efield.setdefault(efield, []).append(relative_s1)
 
-for channel in sorted(channel_points_1000_adc.keys()):
-    if channel == 2070 or channel == 2071:
-        continue
-    plt.plot(
-        channel_points_1000_adc[channel]["efield"],
-        channel_points_1000_adc[channel]["relative_s1"],
-        label=f"Channel {channel} 1000 ADC", ls='-.',
-    )
+efields = sorted(points_by_efield)
+means = [np.mean(points_by_efield[efield]) for efield in efields]
+
+# Approximate ProtoDUNE-VD M8 points digitized from the figure
+relative_s1_previous = np.array([
+    1.000, 0.938, 0.887, 0.858, 0.830, 0.785,
+    0.755, 0.735, 0.715, 0.695, 0.680, 0.665,
+    0.660, 0.640, 0.625, 0.620, 0.620, 0.560,
+])
+
+efield_previous = np.append(np.asarray(efields, dtype=float), 0.556)
+
+plt.scatter(
+    efield_previous,
+    relative_s1_previous,
+    marker="x",
+    color="pink",
+    label="Previous study",
+)
+
+plt.scatter(efields, means, label="Mean all channels and runs, M8", marker="*")
 
 plt.errorbar(E, S1, yerr=[S1_err_low, S1_err_high], color="black", label="Reference Data PD-HD", zorder=10, fmt='o')
 plt.grid()
@@ -240,9 +210,7 @@ plt.legend()
 plt.xlabel("E-Field (kV/cm)")
 plt.ylabel("S1_drift / S1_0")
 plt.title("LY vs E-Field")
+plt.savefig(f"LY_vs_EF_{int(time.time())}.png", dpi=300)
 plt.show()
-
-
-
 
 

@@ -89,6 +89,7 @@ struct Statistics {
     std::vector<std::int64_t> samples;
     std::vector<float> mean;
     std::vector<float> median;
+    std::vector<float> mode;
     std::vector<double> percentile_16;
     std::vector<double> percentile_84;
 };
@@ -440,6 +441,7 @@ Statistics calculateStatistics(const std::vector<WaveformRecord> &records)
     result.samples.resize(sample_count);
     result.mean.resize(sample_count);
     result.median.resize(sample_count);
+    result.mode.resize(sample_count);
     result.percentile_16.resize(sample_count);
     result.percentile_84.resize(sample_count);
     std::vector<float> values(records.size());
@@ -454,6 +456,27 @@ Statistics calculateStatistics(const std::vector<WaveformRecord> &records)
         }
         result.mean[sample] = sum / static_cast<float>(records.size());
         std::sort(values.begin(), values.end());
+        float mode = values.front();
+        std::size_t best_count = 1;
+        std::size_t current_count = 1;
+
+        for (std::size_t i = 1; i < values.size(); ++i) {
+            if (values[i] == values[i - 1]) {
+                ++current_count;
+            } else {
+                if (current_count > best_count) {
+                    best_count = current_count;
+                    mode = values[i - 1];
+                }
+                current_count = 1;
+            }
+        }
+
+        // Handle the final sequence.
+        if (current_count > best_count) {
+            mode = values.back();
+        }
+        result.mode[sample] = mode;
         result.median[sample] = static_cast<float>(percentileFromSorted(values, 0.5));
         result.percentile_16[sample] = percentileFromSorted(values, 0.16);
         result.percentile_84[sample] = percentileFromSorted(values, 0.84);
@@ -466,12 +489,13 @@ void writeStatisticsCsv(const fs::path &filename, const Statistics &statistics)
     std::ofstream output(filename);
     if (!output) throw std::runtime_error("Could not create " + filename.string());
 
-    output << "sample,mean,median,percentile_16,percentile_84\n";
+    output << "sample,mean,median,mode,percentile_16,percentile_84\n";
     output << std::setprecision(std::numeric_limits<double>::max_digits10);
     for (std::size_t index = 0; index < statistics.samples.size(); ++index) {
         output << statistics.samples[index] << ','
                << statistics.mean[index] << ','
                << statistics.median[index] << ','
+               << statistics.mode[index] << ','
                << statistics.percentile_16[index] << ','
                << statistics.percentile_84[index] << '\n';
     }
@@ -563,7 +587,7 @@ void plotAndSaveStatistics(
     const int rows = static_cast<int>((plot_channels.size() + columns - 1) / columns);
     TCanvas canvas(
         ("summary_" + label).c_str(),
-        ("Run " + run + " - Mean and median selected waveforms").c_str(),
+        ("Run " + run + " - Mean, median, and mode selected waveforms").c_str(),
         1900,
         550 * rows
     );
@@ -573,12 +597,14 @@ void plotAndSaveStatistics(
     std::vector<TGraphAsymmErrors> bands;
     std::vector<TGraph> medians;
     std::vector<TGraph> means;
+    std::vector<TGraph> modes;
     std::vector<TLine> zero_lines;
     std::vector<TLegend> legends;
     all_statistics.reserve(plot_channels.size());
     bands.reserve(plot_channels.size());
     medians.reserve(plot_channels.size());
     means.reserve(plot_channels.size());
+    modes.reserve(plot_channels.size());
     zero_lines.reserve(plot_channels.size());
     legends.reserve(plot_channels.size());
 
@@ -596,11 +622,13 @@ void plotAndSaveStatistics(
         const auto &statistics = all_statistics.back();
         const auto count = static_cast<int>(statistics.samples.size());
 
-        std::vector<double> x(count), mean(count), median(count), lower(count), upper(count), zero(count);
+        std::vector<double> x(count), mean(count), median(count), mode(count);
+        std::vector<double> lower(count), upper(count), zero(count);
         for (int index = 0; index < count; ++index) {
             x[index] = statistics.samples[static_cast<std::size_t>(index)];
             mean[index] = statistics.mean[static_cast<std::size_t>(index)];
             median[index] = statistics.median[static_cast<std::size_t>(index)];
+            mode[index] = statistics.mode[static_cast<std::size_t>(index)];
             lower[index] = median[index] - statistics.percentile_16[static_cast<std::size_t>(index)];
             upper[index] = statistics.percentile_84[static_cast<std::size_t>(index)] - median[index];
         }
@@ -633,14 +661,20 @@ void plotAndSaveStatistics(
         means.back().SetLineStyle(2);
         means.back().SetLineWidth(2);
         means.back().Draw("L SAME");
+        modes.emplace_back(count, x.data(), mode.data());
+        modes.back().SetLineColor(kMagenta + 2);
+        modes.back().SetLineStyle(3);
+        modes.back().SetLineWidth(2);
+        modes.back().Draw("L SAME");
 
         zero_lines.emplace_back(0.0, 0.0, static_cast<double>(count - 1), 0.0);
         zero_lines.back().SetLineColor(kGray + 2);
         zero_lines.back().Draw("SAME");
-        legends.emplace_back(0.72, 0.76, 0.93, 0.92);
+        legends.emplace_back(0.72, 0.72, 0.93, 0.92);
         legends.back().AddEntry(&band, "16-84%", "f");
         legends.back().AddEntry(&medians.back(), "Median", "l");
         legends.back().AddEntry(&means.back(), "Mean", "l");
+        legends.back().AddEntry(&modes.back(), "Mode", "l");
         legends.back().Draw();
 
         const fs::path csv_file = output_dir
@@ -649,7 +683,7 @@ void plotAndSaveStatistics(
         std::cout << "Saved " << csv_file << '\n';
     }
 
-    const fs::path output_stem = output_dir / ("mean_median_waveforms_" + label);
+    const fs::path output_stem = output_dir / ("mean_median_mode_waveforms_" + label);
     canvas.SaveAs((output_stem.string() + ".pdf").c_str());
     canvas.SaveAs((output_stem.string() + ".png").c_str());
     std::cout << "Saved " << output_stem << ".pdf and .png\n";
