@@ -1,0 +1,16 @@
+#include "standard_reco_protodunevd_keepup.fcl"
+
+physics.produce: [
+    pdvddaphne
+]
+
+services.TFileService.fileName: "%ifb_pds_%tc_hists.root"
+
+outputs.out1.fileName: "%ifb_pds_%tc.root"
+
+outputs.out1.outputCommands: [
+    "drop *",
+    "keep *_pdvddaphne_*_*"
+]
+
+process_name: pdvdpds

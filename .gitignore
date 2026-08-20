@@ -6,3 +6,6 @@
 
 # Compiled binaries
 /bin/
+
+#Python Envinroments
+analysis/.venv/
