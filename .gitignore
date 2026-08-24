@@ -7,18 +7,15 @@
 *.png
 
 # Exceptions
-!analysis/run_plot_allwaveforms.sh
+!analysis/*.sh
+!analysis/RateAnalysis_data/*.npz
 !plots/
 !plots/**/*.pdf
 !plots/**/*.png
 
+
 # Compiled binaries
 /bin/
 
-<<<<<<< HEAD
 #Python Envinroments
 analysis/.venv/
-=======
-# Peak-finder diagnostic output
-/coincidence/peak_finder_evaluation/
->>>>>>> 56bc08c ([ADD,EDIT] peak finder evaluation code and new selection requirements)

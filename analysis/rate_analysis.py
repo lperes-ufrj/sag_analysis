@@ -362,7 +362,7 @@ def main() -> None:
 
     chain = build_chain(files)
 
-    all_channels = [2030,2031,2040,2041,2050,2051,2060,2061,2080,2081]
+    all_channels = [1010,1011,1020,1021,1030,1031,1040,1041,1050,1051,1060,1061,1070,1071,1080,1081,2010,2011,2021,2030,2031,2040,2041,2050,2051,2060,2061,2070,2071,2080,2081]
     print(all_channels)
     waveforms = read_waveform_timestamps_amplitude(chain, all_channels)
     amplitudes, live_times = summarize_waveforms_by_event(waveforms, all_channels)
