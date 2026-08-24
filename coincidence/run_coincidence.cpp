@@ -5,11 +5,14 @@
 #include <TTree.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
+#include <numeric>
 #include <set>
 #include <sstream>
 #include <stdexcept>
@@ -31,12 +34,14 @@ struct Arguments {
     std::vector<unsigned int> save{2070, 2071, 2080, 2081};
     int window_ticks = 1;
     double min_amplitude_adc = 1000.0;
+    fs::path save_threshold_file;
     std::string run;
 };
 
 struct WaveformRecord {
     std::int64_t pulse_time;
     int waveform_index;
+    double save_amplitude_adc;
 };
 
 struct CoincidentPair {
@@ -56,10 +61,18 @@ struct Candidate {
     int left_waveform_index;
     unsigned int right_channel;
     int right_waveform_index;
+    double save_amplitude_adc;
 };
 
 using EventChannels = std::unordered_map<unsigned int, std::vector<WaveformRecord>>;
 using WaveformKey = std::tuple<int, unsigned int, int>;
+using SaveThresholds = std::unordered_map<unsigned int, double>;
+
+// Keep these half-open ranges synchronized with analysis/rate_analysis.py.
+constexpr std::size_t BASELINE_FIRST_SAMPLE = 0;
+constexpr std::size_t BASELINE_LAST_SAMPLE = 50;
+constexpr std::size_t SIGNAL_FIRST_SAMPLE = 50;
+constexpr std::size_t SIGNAL_LAST_SAMPLE = 1023;
 
 std::string trim(const std::string &text)
 {
@@ -88,7 +101,8 @@ void printUsage(const char *program)
         << "  --channels-coincident-right CH [CH ...]\n"
         << "  --channels-to-save CH [CH ...]\n"
         << "  --window-ticks N\n"
-        << "  --min-amplitude-adc X (default: 1000)\n";
+        << "  --min-amplitude-adc X (default: 1000)\n"
+        << "  --save-threshold-file FILE (optional final save-only cut)\n";
 }
 
 std::vector<unsigned int> parseChannels(int &index, int argc, char **argv)
@@ -133,6 +147,11 @@ Arguments parseArguments(int argc, char **argv)
                 throw std::runtime_error("--min-amplitude-adc requires a value");
             }
             args.min_amplitude_adc = std::stod(argv[index]);
+        } else if (option == "--save-threshold-file" || option == "--save-thresholds") {
+            if (++index >= argc) {
+                throw std::runtime_error(option + " requires a value");
+            }
+            args.save_threshold_file = argv[index];
         } else if (option == "--run") {
             if (++index >= argc) throw std::runtime_error("--run requires a value");
             args.run = argv[index];
@@ -152,6 +171,169 @@ Arguments parseArguments(int argc, char **argv)
         throw std::runtime_error("--min-amplitude-adc cannot be negative");
     }
     return args;
+}
+
+std::vector<std::string> splitFields(const std::string &line)
+{
+    std::istringstream input(line);
+    std::vector<std::string> fields;
+    std::string field;
+    while (input >> field) fields.push_back(field);
+    return fields;
+}
+
+SaveThresholds readSaveThresholds(const fs::path &threshold_file)
+{
+    std::ifstream input(threshold_file);
+    if (!input) {
+        throw std::runtime_error(
+            "Could not open save-threshold file: " + threshold_file.string()
+        );
+    }
+
+    SaveThresholds thresholds;
+    bool found_header = false;
+    std::size_t channel_column = 0;
+    std::size_t threshold_column = 0;
+    std::size_t line_number = 0;
+    std::string line;
+
+    while (std::getline(input, line)) {
+        ++line_number;
+        line = trim(line);
+        if (line.empty()) continue;
+
+        const bool comment = line.front() == '#';
+        if (comment) line = trim(line.substr(1));
+        if (line.empty()) continue;
+
+        const auto fields = splitFields(line);
+        if (!found_header) {
+            const auto channel = std::find(fields.begin(), fields.end(), "channel");
+            const auto threshold = std::find(fields.begin(), fields.end(), "threshold_adc");
+            if (channel != fields.end() && threshold != fields.end()) {
+                channel_column = static_cast<std::size_t>(
+                    std::distance(fields.begin(), channel)
+                );
+                threshold_column = static_cast<std::size_t>(
+                    std::distance(fields.begin(), threshold)
+                );
+                found_header = true;
+                continue;
+            }
+            if (comment) continue;
+            throw std::runtime_error(
+                "Save-threshold file must contain 'channel' and 'threshold_adc' "
+                "columns: " + threshold_file.string()
+            );
+        }
+
+        if (comment) continue;
+        const std::size_t required_column = std::max(channel_column, threshold_column);
+        if (fields.size() <= required_column) {
+            throw std::runtime_error(
+                "Malformed save-threshold row " + std::to_string(line_number)
+                + " in " + threshold_file.string()
+            );
+        }
+
+        unsigned int channel = 0;
+        double threshold = 0.0;
+        try {
+            const std::string &channel_text = fields[channel_column];
+            if (!channel_text.empty() && channel_text.front() == '-') {
+                throw std::invalid_argument("negative channel");
+            }
+            std::size_t consumed = 0;
+            const unsigned long long parsed_channel = std::stoull(channel_text, &consumed);
+            if (consumed != channel_text.size()
+                || parsed_channel > std::numeric_limits<unsigned int>::max()) {
+                throw std::out_of_range("invalid channel");
+            }
+            channel = static_cast<unsigned int>(parsed_channel);
+
+            const std::string &threshold_text = fields[threshold_column];
+            consumed = 0;
+            threshold = std::stod(threshold_text, &consumed);
+            if (consumed != threshold_text.size()) {
+                throw std::invalid_argument("invalid threshold");
+            }
+        } catch (const std::exception &) {
+            throw std::runtime_error(
+                "Invalid save-threshold values on row " + std::to_string(line_number)
+                + " in " + threshold_file.string()
+            );
+        }
+
+        if (!thresholds.emplace(channel, threshold).second) {
+            throw std::runtime_error(
+                "Duplicate save-threshold channel " + std::to_string(channel)
+                + " in " + threshold_file.string()
+            );
+        }
+    }
+
+    if (!found_header) {
+        throw std::runtime_error(
+            "Save-threshold file has no header: " + threshold_file.string()
+        );
+    }
+    if (thresholds.empty()) {
+        throw std::runtime_error(
+            "Save-threshold file contains no data rows: " + threshold_file.string()
+        );
+    }
+    return thresholds;
+}
+
+void validateSaveThresholds(
+    const SaveThresholds &thresholds,
+    const std::vector<unsigned int> &save_channels,
+    const fs::path &threshold_file
+)
+{
+    for (const unsigned int channel : save_channels) {
+        const auto found = thresholds.find(channel);
+        if (found == thresholds.end()) {
+            throw std::runtime_error(
+                "Save-threshold file does not contain save channel "
+                + std::to_string(channel) + ": " + threshold_file.string()
+            );
+        }
+        if (!std::isfinite(found->second) || found->second < 0.0) {
+            throw std::runtime_error(
+                "Save-threshold for channel " + std::to_string(channel)
+                + " must be finite and non-negative: " + threshold_file.string()
+            );
+        }
+    }
+}
+
+double baselineToPeakAmplitude(const std::vector<short> &adc)
+{
+    const std::size_t baseline_stop = std::min(BASELINE_LAST_SAMPLE, adc.size());
+    const std::size_t signal_stop = std::min(SIGNAL_LAST_SAMPLE, adc.size());
+    if (BASELINE_FIRST_SAMPLE >= baseline_stop || SIGNAL_FIRST_SAMPLE >= signal_stop) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    const double baseline_sum = std::accumulate(
+        adc.begin() + static_cast<std::ptrdiff_t>(BASELINE_FIRST_SAMPLE),
+        adc.begin() + static_cast<std::ptrdiff_t>(baseline_stop),
+        0.0
+    );
+    const double baseline = baseline_sum
+        / static_cast<double>(baseline_stop - BASELINE_FIRST_SAMPLE);
+    const auto peak = std::max_element(
+        adc.begin() + static_cast<std::ptrdiff_t>(SIGNAL_FIRST_SAMPLE),
+        adc.begin() + static_cast<std::ptrdiff_t>(signal_stop)
+    );
+    return static_cast<double>(*peak) - baseline;
+}
+
+bool passesSaveThreshold(double amplitude, double threshold)
+{
+    return std::isfinite(amplitude) && amplitude >= threshold;
 }
 
 std::vector<std::string> readInputList(const fs::path &input_list)
@@ -219,6 +401,7 @@ void scanCoincidence(
     TChain &chain,
     const WaveformAnalyzer &analyzer,
     const Arguments &args,
+    const SaveThresholds &save_thresholds,
     const std::string &output_file
 )
 {
@@ -231,6 +414,7 @@ void scanCoincidence(
     std::set<unsigned int> valid_channels(args.left.begin(), args.left.end());
     valid_channels.insert(args.right.begin(), args.right.end());
     valid_channels.insert(args.save.begin(), args.save.end());
+    const std::set<unsigned int> save_channels(args.save.begin(), args.save.end());
 
     std::map<int, EventChannels> by_event;
     std::size_t relevant_waveforms = 0;
@@ -288,7 +472,15 @@ void scanCoincidence(
             if (amplitude > args.min_amplitude_adc) {
                 const std::int64_t pulse_time = static_cast<std::int64_t>(timestamp)
                     + analyzer.pulseStart(*adc, channel) * SAMPLE_PERIOD_NS;
-                by_event[event][channel].push_back({pulse_time, waveform_index});
+                double save_amplitude_adc = std::numeric_limits<double>::quiet_NaN();
+                if (!save_thresholds.empty() && save_channels.count(channel) != 0) {
+                    save_amplitude_adc = baselineToPeakAmplitude(*adc);
+                }
+                by_event[event][channel].push_back({
+                    pulse_time,
+                    waveform_index,
+                    save_amplitude_adc
+                });
                 ++accepted_waveforms;
             } else {
                 ++subthreshold_waveforms;
@@ -404,7 +596,8 @@ void scanCoincidence(
                         pair->left_channel,
                         pair->left_waveform_index,
                         pair->right_channel,
-                        pair->right_waveform_index
+                        pair->right_waveform_index,
+                        save_record.save_amplitude_adc
                     };
                     const auto previous = selected.find(key);
                     if (previous == selected.end() || betterCandidate(candidate, previous->second)) {
@@ -422,6 +615,25 @@ void scanCoincidence(
                       << "; coincident pairs=" << coincident_pairs_total
                       << "; unique waveforms selected=" << selected.size() << std::endl;
         }
+    }
+
+    if (!save_thresholds.empty()) {
+        const std::size_t before_threshold_cut = selected.size();
+        std::size_t rejected_by_threshold = 0;
+        for (auto selected_it = selected.begin(); selected_it != selected.end();) {
+            const unsigned int selected_channel = std::get<1>(selected_it->first);
+            const double threshold = save_thresholds.at(selected_channel);
+            const double amplitude = selected_it->second.save_amplitude_adc;
+            if (!passesSaveThreshold(amplitude, threshold)) {
+                selected_it = selected.erase(selected_it);
+                ++rejected_by_threshold;
+            } else {
+                ++selected_it;
+            }
+        }
+        std::cout << "Final save-threshold cut retained " << selected.size()
+                  << " of " << before_threshold_cut << " selected waveforms; rejected "
+                  << rejected_by_threshold << std::endl;
     }
 
     std::ofstream output(output_file, std::ios::binary);
@@ -451,6 +663,16 @@ int main(int argc, char **argv)
         const auto files = readInputList(args.input_list);
         if (files.empty()) throw std::runtime_error("No ROOT files found in input list");
 
+        SaveThresholds save_thresholds;
+        if (!args.save_threshold_file.empty()) {
+            save_thresholds = readSaveThresholds(args.save_threshold_file);
+            validateSaveThresholds(
+                save_thresholds,
+                args.save,
+                args.save_threshold_file
+            );
+        }
+
         const std::string output_file = makeOutputFilename(args);
         const WaveformAnalyzer analyzer(args.config.string());
         auto chain = createChain(files);
@@ -465,7 +687,17 @@ int main(int argc, char **argv)
                   << "], saving channels [" << joinChannels(args.save, ", ") << ']'
                   << std::endl;
 
-        scanCoincidence(*chain, analyzer, args, output_file);
+        if (!save_thresholds.empty()) {
+            std::cout << "Final save-threshold file: " << args.save_threshold_file << '\n';
+            for (const unsigned int channel : args.save) {
+                std::cout << "  Channel " << channel << ": retain amplitude >= "
+                          << save_thresholds.at(channel) << " ADC\n";
+            }
+            std::cout << "  Amplitude = max(ADC[50:1023]) - mean(ADC[0:50])"
+                      << std::endl;
+        }
+
+        scanCoincidence(*chain, analyzer, args, save_thresholds, output_file);
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Error: " << error.what() << std::endl;

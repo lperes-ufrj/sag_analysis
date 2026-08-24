@@ -6,18 +6,21 @@ import re
 from pathlib import Path
 
 TICK_SECONDS = 16e-9
+AMPLITUDE_DEFINITION = "baseline_to_peak"
+BASELINE_RANGE = (0, 50)
+SIGNAL_RANGE = (50, 1023)
 
 
 ROOT.gInterpreter.Declare(
     r"""
-    #ifndef SAG_ANALYSIS_WAVEFORM_FEATURES
-    #define SAG_ANALYSIS_WAVEFORM_FEATURES
+    #ifndef SAG_ANALYSIS_BASELINE_TO_PEAK_AMPLITUDE
+    #define SAG_ANALYSIS_BASELINE_TO_PEAK_AMPLITUDE
     #include <algorithm>
     #include <cstddef>
     #include <limits>
 
     template <typename Waveform>
-    double sag_baseline(
+    double sag_mean_baseline(
         const Waveform &adc, std::size_t first, std::size_t last
     ) {
         last = std::min(last, adc.size());
@@ -33,7 +36,7 @@ ROOT.gInterpreter.Declare(
     }
 
     template <typename Waveform>
-    double sag_amplitude(
+    double sag_baseline_to_peak_amplitude(
         const Waveform &adc,
         double baseline,
         std::size_t first,
@@ -44,13 +47,10 @@ ROOT.gInterpreter.Declare(
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        double amplitude = -std::numeric_limits<double>::infinity();
-        for (std::size_t sample = first; sample < last; ++sample) {
-            const double baseline_subtracted =
-                static_cast<double>(adc[sample]) - baseline;
-            amplitude = std::max(amplitude, baseline_subtracted);
-        }
-        return amplitude;
+        const auto peak = std::max_element(
+            adc.begin() + first, adc.begin() + last
+        );
+        return static_cast<double>(*peak) - baseline;
     }
     #endif
     """
@@ -110,19 +110,10 @@ def build_chain(files: list[Path]) -> ROOT.TChain:
 def read_waveform_timestamps_amplitude(
     chain: ROOT.TChain,
     channels: tuple[int, ...],
-    baseline_range: tuple[int, int] = (0, 50),
-    signal_range: tuple[int, int] = (50, 110),
 ) -> dict[int, dict[str, np.ndarray]]:
-    """Calculate baseline/amplitude in ROOT and return aligned metadata."""
+    """Calculate baseline-to-peak amplitude over samples 50:1023 in ROOT."""
     if not channels:
         return {}
-
-    baseline_first, baseline_last = baseline_range
-    signal_first, signal_last = signal_range
-    if not 0 <= baseline_first < baseline_last:
-        raise ValueError("baseline_range must satisfy 0 <= first < last")
-    if not 0 <= signal_first < signal_last:
-        raise ValueError("signal_range must satisfy 0 <= first < last")
 
     for branch_name in ("channel", "event", "timestamp", "adc"):
         if chain.GetBranch(branch_name) is None:
@@ -138,19 +129,19 @@ def read_waveform_timestamps_amplitude(
         .Filter(channel_filter)
         .Define(
             "calculated_baseline",
-            f"sag_baseline(adc, {baseline_first}, {baseline_last})",
+            "sag_mean_baseline(adc, "
+            f"{BASELINE_RANGE[0]}, {BASELINE_RANGE[1]})",
         )
         .Define(
             "calculated_amplitude",
-            "sag_amplitude(adc, calculated_baseline, "
-            f"{signal_first}, {signal_last})",
+            "sag_baseline_to_peak_amplitude(adc, calculated_baseline, "
+            f"{SIGNAL_RANGE[0]}, {SIGNAL_RANGE[1]})",
         )
         .AsNumpy(
             [
                 "event",
                 "channel",
                 "timestamp",
-                "calculated_baseline",
                 "calculated_amplitude",
             ]
         )
@@ -159,7 +150,6 @@ def read_waveform_timestamps_amplitude(
     event_values = data["event"].astype(np.int64, copy=False)
     channel_values = data["channel"].astype(np.int64, copy=False)
     timestamp_values = data["timestamp"].astype(np.int64, copy=False)
-    baseline_values = data["calculated_baseline"].astype(np.float64, copy=False)
     amplitude_values = data["calculated_amplitude"].astype(np.float64, copy=False)
 
     waveforms = {}
@@ -168,7 +158,6 @@ def read_waveform_timestamps_amplitude(
         waveforms[channel] = {
             "event": event_values[channel_mask],
             "timestamp": timestamp_values[channel_mask],
-            "baseline": baseline_values[channel_mask],
             "amplitude": amplitude_values[channel_mask],
         }
     return waveforms
@@ -243,11 +232,37 @@ def find_rate_matching_threshold(
     return threshold, selected, float(np.count_nonzero(selected) / live_time_s)
 
 
+def save_threshold_table(
+    output: Path,
+    channels: np.ndarray,
+    target_frequency_khz: np.ndarray,
+    thresholds_adc: np.ndarray,
+) -> None:
+    """Save channel, target rate, and ADC threshold as a text table."""
+    if not (
+        channels.shape == target_frequency_khz.shape == thresholds_adc.shape
+    ):
+        raise ValueError("threshold-table columns must have matching shapes")
+
+    table = np.column_stack(
+        (channels, target_frequency_khz, thresholds_adc)
+    )
+    np.savetxt(
+        output,
+        table,
+        fmt=("%d", "%.4g", "%.4g"),
+        delimiter="\t",
+        header="channel\ttarget_frequency_khz\tthreshold_adc",
+        comments="",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Calculate per-channel waveform amplitude spectra and save them "
-            "as compressed NumPy files."
+            "Calculate per-channel baseline-to-peak amplitude spectra over "
+            "waveform samples 50:1023 and save them as compressed NumPy files; "
+            "equalized runs also save a text threshold table."
         )
     )
     parser.add_argument(
@@ -391,8 +406,9 @@ def main() -> None:
         "channels": channels_array,
         "amplitude_bin_edges_adc": amplitude_bins,
         "live_time_s": live_time_array,
-        "baseline_range": np.asarray([0, 50], dtype=np.int64),
-        "signal_range": np.asarray([50, 110], dtype=np.int64),
+        "amplitude_definition": np.asarray(AMPLITUDE_DEFINITION),
+        "baseline_range": np.asarray(BASELINE_RANGE, dtype=np.int64),
+        "signal_range": np.asarray(SIGNAL_RANGE, dtype=np.int64),
         "tick_seconds": np.asarray(TICK_SECONDS),
     }
 
@@ -414,9 +430,49 @@ def main() -> None:
         if not reference_path.is_file():
             raise FileNotFoundError(f"Reference NPZ not found: {reference_path}")
         with np.load(reference_path, allow_pickle=False) as reference_data:
-            if "channels" not in reference_data or "frequency_khz" not in reference_data:
+            required_keys = {
+                "channels",
+                "frequency_khz",
+                "amplitude_definition",
+                "baseline_range",
+                "signal_range",
+            }
+            missing_keys = required_keys.difference(reference_data.files)
+            if missing_keys:
                 raise RuntimeError(
-                    f"Reference NPZ is missing channels or frequency_khz: "
+                    f"Reference NPZ is missing keys {sorted(missing_keys)}: "
+                    f"{reference_path}. Regenerate it with this version of "
+                    "rate_analysis.py."
+                )
+            reference_definition = str(
+                reference_data["amplitude_definition"].item()
+            )
+            if reference_definition != AMPLITUDE_DEFINITION:
+                raise RuntimeError(
+                    f"Reference NPZ uses amplitude definition "
+                    f"'{reference_definition}', expected "
+                    f"'{AMPLITUDE_DEFINITION}': {reference_path}"
+                )
+            reference_baseline_range = tuple(
+                reference_data["baseline_range"].astype(
+                    np.int64, copy=False
+                ).tolist()
+            )
+            if reference_baseline_range != BASELINE_RANGE:
+                raise RuntimeError(
+                    "Reference NPZ uses baseline range "
+                    f"{reference_baseline_range}, expected {BASELINE_RANGE}: "
+                    f"{reference_path}"
+                )
+            reference_signal_range = tuple(
+                reference_data["signal_range"].astype(
+                    np.int64, copy=False
+                ).tolist()
+            )
+            if reference_signal_range != SIGNAL_RANGE:
+                raise RuntimeError(
+                    "Reference NPZ uses signal range "
+                    f"{reference_signal_range}, expected {SIGNAL_RANGE}: "
                     f"{reference_path}"
                 )
             reference_channels = reference_data["channels"].astype(
@@ -503,6 +559,15 @@ def main() -> None:
         histogram_after_rate_hz=histogram_after_rate_hz,
     )
     print(f"Saved equalized data: {output}")
+
+    threshold_output = output_dir / f"equalized_run_{run}_thresholds.txt"
+    save_threshold_table(
+        threshold_output,
+        channels_array,
+        target_frequency_khz,
+        thresholds_adc,
+    )
+    print(f"Saved channel thresholds: {threshold_output}")
   
         
 if __name__ == "__main__":
