@@ -287,7 +287,7 @@ SaveThresholds readSaveThresholds(const fs::path &threshold_file)
 }
 
 void validateSaveThresholds(
-    const SaveThresholds &thresholds,
+    SaveThresholds &thresholds,
     const std::vector<unsigned int> &save_channels,
     const fs::path &threshold_file
 )
@@ -300,11 +300,17 @@ void validateSaveThresholds(
                 + std::to_string(channel) + ": " + threshold_file.string()
             );
         }
-        if (!std::isfinite(found->second) || found->second < 0.0) {
+        if (!std::isfinite(found->second)) {
             throw std::runtime_error(
                 "Save-threshold for channel " + std::to_string(channel)
-                + " must be finite and non-negative: " + threshold_file.string()
+                + " must be finite: " + threshold_file.string()
             );
+        }
+        if (found->second < 0.0) {
+            std::cout << "Save-threshold for channel " << channel
+                      << " is " << found->second
+                      << " ADC; using 0 ADC instead" << std::endl;
+            found->second = 0.0;
         }
     }
 }
