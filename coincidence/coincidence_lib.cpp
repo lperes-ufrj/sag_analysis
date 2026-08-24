@@ -15,11 +15,8 @@ namespace {
 constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
 constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
 constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
-
-struct PeakCandidate {
-    int tick = -1;
-    double amplitude = 0.0;
-};
+constexpr double MINIMUM_ADDITIONAL_PEAK_FRACTION = 0.10;
+constexpr double MINIMUM_ADDITIONAL_PEAK_PROMINENCE_ADC = 100.0;
 
 std::string trim(const std::string &text)
 {
@@ -219,14 +216,19 @@ PeakSearchResult WaveformAnalyzer::findPeak(
     PeakSearchResult result;
     if (waveform.size() < 3) return result;
 
-    const double waveform_baseline = noiseBaseline(waveform, channel);
-    const double minimum_height = std::max(
+    result.baseline = noiseBaseline(waveform, channel);
+    result.noise_rms = noiseRms(waveform, channel);
+    result.minimum_height = std::max(
         MINIMUM_PEAK_HEIGHT_ADC,
-        MINIMUM_PEAK_HEIGHT_SIGMA * noiseRms(waveform, channel)
+        MINIMUM_PEAK_HEIGHT_SIGMA * result.noise_rms
+    );
+    result.additional_prominence_threshold = std::max(
+        MINIMUM_ADDITIONAL_PEAK_PROMINENCE_ADC,
+        MINIMUM_PEAK_HEIGHT_SIGMA * result.noise_rms
     );
 
     const std::size_t half_window = PEAK_SMOOTHING_WINDOW / 2;
-    std::vector<double> smoothed(waveform.size());
+    result.smoothed.resize(waveform.size());
     for (std::size_t tick = 0; tick < waveform.size(); ++tick) {
         const std::size_t start = tick > half_window ? tick - half_window : 0;
         const std::size_t stop = std::min(waveform.size(), tick + half_window + 1);
@@ -235,23 +237,22 @@ PeakSearchResult WaveformAnalyzer::findPeak(
             waveform.begin() + static_cast<std::ptrdiff_t>(stop),
             0.0
         );
-        smoothed[tick] = sum / static_cast<double>(stop - start) - waveform_baseline;
+        result.smoothed[tick] = sum / static_cast<double>(stop - start) - result.baseline;
     }
 
-    std::vector<PeakCandidate> candidates;
-    for (std::size_t tick = 1; tick + 1 < smoothed.size(); ++tick) {
-        const bool is_local_maximum = smoothed[tick] > smoothed[tick - 1]
-            && smoothed[tick] >= smoothed[tick + 1];
-        if (is_local_maximum && smoothed[tick] >= minimum_height) {
-            candidates.push_back({static_cast<int>(tick), smoothed[tick]});
+    for (std::size_t tick = 1; tick + 1 < result.smoothed.size(); ++tick) {
+        const bool is_local_maximum = result.smoothed[tick] > result.smoothed[tick - 1]
+            && result.smoothed[tick] >= result.smoothed[tick + 1];
+        if (is_local_maximum && result.smoothed[tick] >= result.minimum_height) {
+            result.candidates.push_back({static_cast<int>(tick), result.smoothed[tick], 0.0, false});
         }
     }
 
-    result.peak_count = candidates.size();
-    if (candidates.empty()) return result;
+    result.peak_count = result.candidates.size();
+    if (result.candidates.empty()) return result;
 
     const auto primary = std::max_element(
-        candidates.begin(), candidates.end(),
+        result.candidates.begin(), result.candidates.end(),
         [](const PeakCandidate &left, const PeakCandidate &right) {
             return left.amplitude < right.amplitude;
         }
@@ -260,17 +261,40 @@ PeakSearchResult WaveformAnalyzer::findPeak(
     result.tick = primary->tick;
     result.amplitude = primary->amplitude;
 
+    // A local maximum on the long falling edge is still useful diagnostic
+    // information, but it should veto the waveform only if it rises clearly
+    // from the intervening valley and is large relative to the primary pulse.
+    for (auto &candidate : result.candidates) {
+        if (candidate.tick == primary->tick) continue;
+        const int first_tick = std::min(candidate.tick, primary->tick);
+        const int last_tick = std::max(candidate.tick, primary->tick);
+        const auto valley = std::min_element(
+            result.smoothed.begin() + first_tick,
+            result.smoothed.begin() + last_tick + 1
+        );
+        candidate.prominence = candidate.amplitude - *valley;
+        candidate.significant_additional =
+            candidate.amplitude >= MINIMUM_ADDITIONAL_PEAK_FRACTION * primary->amplitude
+            && candidate.prominence >= result.additional_prominence_threshold;
+    }
+
     const auto [signal_start, signal_stop] = checkedRegion(waveform, channel, "signal");
     const auto outside_signal = [signal_start, signal_stop](int tick) {
         return tick < signal_start || tick >= signal_stop;
     };
+    result.signal_peak_count = static_cast<std::size_t>(std::count_if(
+        result.candidates.begin(), result.candidates.end(),
+        [&](const PeakCandidate &candidate) { return !outside_signal(candidate.tick); }
+    ));
     result.primary_outside_signal_region = outside_signal(primary->tick);
 
     if (!result.primary_outside_signal_region) {
         result.additional_outside_signal_region = std::any_of(
-            candidates.begin(), candidates.end(),
+            result.candidates.begin(), result.candidates.end(),
             [&](const PeakCandidate &candidate) {
-                return candidate.tick != primary->tick && outside_signal(candidate.tick);
+                return candidate.tick != primary->tick
+                    && outside_signal(candidate.tick)
+                    && candidate.significant_additional;
             }
         );
     }

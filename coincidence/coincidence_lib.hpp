@@ -13,13 +13,27 @@ class TChain;
 
 inline constexpr std::int64_t SAMPLE_PERIOD_NS = 16;
 
+struct PeakCandidate {
+    int tick = -1;
+    double amplitude = 0.0;
+    double prominence = 0.0;
+    bool significant_additional = false;
+};
+
 struct PeakSearchResult {
     bool found = false;
     int tick = -1;
     double amplitude = 0.0;
     std::size_t peak_count = 0;
+    std::size_t signal_peak_count = 0;
     bool primary_outside_signal_region = false;
     bool additional_outside_signal_region = false;
+    double baseline = 0.0;
+    double noise_rms = 0.0;
+    double minimum_height = 0.0;
+    double additional_prominence_threshold = 0.0;
+    std::vector<double> smoothed;
+    std::vector<PeakCandidate> candidates;
 };
 
 class WaveformAnalyzer {
