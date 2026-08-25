@@ -42,7 +42,7 @@ for threshold_file in "${threshold_files[@]}"; do
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --channels-coincident-left 2030 2031  \
         --channels-coincident-right 2060 2061 \
-        --channels-to-save 1020 1021 1040 1041 1060 1061 1080 1081 \
+        --channels-to-save 1020 1021 1040 1041 1060 1061 1080 1081 2010 2011 2080 2081 \
         --window-ticks 10 \
         --min-amplitude-adc 0 \
         --save-threshold-file "$threshold_file"
