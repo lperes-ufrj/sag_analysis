@@ -6,8 +6,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 INPUT_DIR="$SCRIPT_DIR/../input_lists"
 OUTPUT_DIR="$SCRIPT_DIR/selected_waveforms"
 EXECUTABLE="$SCRIPT_DIR/../bin/plot_wfs_coincidence"
-CSV_SUFFIX="coinc_2030-2031_vs_2060-2061_save_2010-2011_window_10_ticks_min_amplitude_0_adc.csv"
-
+CSV_SUFFIX="coinc_2030-2031_vs_2060-2061_save_1020-1021-1040-1041-1060-1061-1080-1081_window_10_ticks_min_amplitude_0_adc.csv"
 MAX_AUXILIARY_AMPLITUDE="500"
 
 # Compile only when the executable is missing or its sources changed.
