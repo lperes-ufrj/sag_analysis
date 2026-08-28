@@ -14,7 +14,9 @@
 !plots/**/*.png
 !concidence/saved_coincidences/
 !coincidence/selected_waveforms/saved_waveforms/
-
+!coincidence/run_coincidences.sh  
+!coincidence/run_full_pipeline_mean_wfs.sh  
+!coincidence/run_plot_wfs_all.sh
 
 # Compiled binaries
 /bin/

@@ -45,6 +45,7 @@ struct Options {
     std::vector<fs::path> input_lists;
     fs::path config;
     fs::path output_dir;
+    fs::path csv_file;
     std::string csv_suffix = DEFAULT_CSV_SUFFIX;
     double max_auxiliary_amplitude = DEFAULT_MAX_AUXILIARY_AMPLITUDE;
 };
@@ -153,6 +154,7 @@ void printUsage(const char *program)
         << "Options:\n"
         << "  --config FILE                 Waveform interval INI file\n"
         << "  --output-dir DIR             Output directory\n"
+        << "  --csv FILE                   Explicit timestamped selection CSV\n"
         << "  --csv-suffix SUFFIX          Selection CSV filename suffix\n"
         << "  --max-auxiliary-amplitude N  Absolute |ADC - baseline| limit in noise/"
         << "post-signal regions (default: 500)\n"
@@ -172,11 +174,13 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
             std::exit(0);
         }
         if (argument == "--config" || argument == "--output-dir"
+            || argument == "--csv"
             || argument == "--csv-suffix"
             || argument == "--max-auxiliary-amplitude") {
             if (++index >= argc) throw std::runtime_error("Missing value for " + argument);
             if (argument == "--config") options.config = argv[index];
             else if (argument == "--output-dir") options.output_dir = argv[index];
+            else if (argument == "--csv") options.csv_file = argv[index];
             else if (argument == "--csv-suffix") options.csv_suffix = argv[index];
             else options.max_auxiliary_amplitude = std::stod(argv[index]);
             continue;
@@ -202,6 +206,10 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
     }
     options.config = fs::absolute(options.config);
     options.output_dir = fs::absolute(options.output_dir);
+    if (!options.csv_file.empty()) options.csv_file = fs::absolute(options.csv_file);
+    if (!options.csv_file.empty() && options.input_lists.size() != 1) {
+        throw std::runtime_error("--csv requires exactly one input list");
+    }
     if (options.csv_suffix.size() <= 4
         || options.csv_suffix.substr(options.csv_suffix.size() - 4) != ".csv") {
         throw std::runtime_error("CSV suffix must end in .csv");
@@ -964,9 +972,13 @@ void processInputList(
         throw std::runtime_error("Input list not found: " + input_list.string());
     }
     const std::string run = inferRun(input_list);
-    const std::string csv_name = "waveforms_run_" + run + "_" + options.csv_suffix;
-    fs::path csv_file = input_list.parent_path() / csv_name;
-    if (!fs::is_regular_file(csv_file)) csv_file = program_dir / csv_name;
+    fs::path csv_file = options.csv_file;
+    if (csv_file.empty()) {
+        const std::string csv_name =
+            "waveforms_run_" + run + "_" + options.csv_suffix;
+        csv_file = input_list.parent_path() / csv_name;
+        if (!fs::is_regular_file(csv_file)) csv_file = program_dir / csv_name;
+    }
 
     if (!fs::is_regular_file(csv_file)) {
         throw std::runtime_error("Selection CSV not found: " + csv_file.string());
@@ -994,8 +1006,10 @@ void processInputList(
     const auto selections = loadWaveforms(
         *chain, located, analyzer, options.max_auxiliary_amplitude
     );
-    const std::string label = "run_" + run + "_"
-        + options.csv_suffix.substr(0, options.csv_suffix.size() - 4);
+    const std::string label = options.csv_file.empty()
+        ? "run_" + run + "_"
+            + options.csv_suffix.substr(0, options.csv_suffix.size() - 4)
+        : csv_file.stem().string();
     const fs::path cut_summary = options.output_dir
         / ("selection_cuts_" + label + ".txt");
 
