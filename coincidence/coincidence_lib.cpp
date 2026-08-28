@@ -12,12 +12,6 @@
 
 namespace {
 
-constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
-constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
-constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
-constexpr double MINIMUM_ADDITIONAL_PEAK_FRACTION = 0.10;
-constexpr double MINIMUM_ADDITIONAL_PEAK_PROMINENCE_ADC = 100.0;
-
 std::string trim(const std::string &text)
 {
     const auto first = text.find_first_not_of(" \t\r\n");

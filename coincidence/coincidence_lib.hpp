@@ -12,6 +12,11 @@
 class TChain;
 
 inline constexpr std::int64_t SAMPLE_PERIOD_NS = 16;
+inline constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
+inline constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
+inline constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
+inline constexpr double MINIMUM_ADDITIONAL_PEAK_FRACTION = 0.10;
+inline constexpr double MINIMUM_ADDITIONAL_PEAK_PROMINENCE_ADC = 100.0;
 
 struct PeakCandidate {
     int tick = -1;
