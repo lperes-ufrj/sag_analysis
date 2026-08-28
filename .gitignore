@@ -7,6 +7,10 @@
 *.png
 
 # Exceptions
+!coincidence/selected_waveforms/*/*.png
+!coincidence/selected_waveforms/*/*.pdf
+!coincidence/selected_waveforms/*.png
+!coincidence/selected_waveforms/*.pdf
 !analysis/*.sh
 !analysis/RateAnalysis_data/*.npz
 !plots/
