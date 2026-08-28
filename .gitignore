@@ -18,6 +18,7 @@
 
 # Compiled binaries
 /bin/
+/ml-selection-lucca/
 
 #Python Envinroments
 analysis/.venv/
