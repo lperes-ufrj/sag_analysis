@@ -12,6 +12,8 @@
 !plots/
 !plots/**/*.pdf
 !plots/**/*.png
+!concidence/saved_coincidences/
+!coincidence/selected_waveforms/saved_waveforms/
 
 
 # Compiled binaries
