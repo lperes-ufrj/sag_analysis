@@ -35,7 +35,9 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 shopt -s nullglob
-selection_csvs=("$ANALYSIS_DIR"/run_*_"$ANALYSIS_TIMESTAMP".csv)
+selection_csvs=(
+    "$ANALYSIS_DIR"/coincidence_scan_run_*_"$ANALYSIS_TIMESTAMP".csv
+)
 
 if ((${#selection_csvs[@]} == 0)); then
     echo "Error: no timestamped selection CSVs found in $ANALYSIS_DIR" >&2
@@ -50,7 +52,7 @@ for index in "${!selection_csvs[@]}"; do
     selection_csv=${selection_csvs[$index]}
     filename=${selection_csv##*/}
 
-    if [[ $filename =~ ^run_([0-9]{6})_(.+)\.csv$ ]] \
+    if [[ $filename =~ ^coincidence_scan_run_([0-9]{6})_(.+)\.csv$ ]] \
         && [[ ${BASH_REMATCH[2]} == "$ANALYSIS_TIMESTAMP" ]]; then
         run=${BASH_REMATCH[1]}
     else
