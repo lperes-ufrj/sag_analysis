@@ -49,9 +49,9 @@ for threshold_file in "${threshold_files[@]}"; do
         --run "$run" \
         --timestamp "$ANALYSIS_TIMESTAMP" \
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
-        --channels-coincident-left 2010 2011 2021 \
-        --channels-coincident-right 2070 2071 2080 2081 \
-        --channels-to-save 2050 2051 2060 2061  \
+        --channels-coincident-left 2030 2031\
+        --channels-coincident-right 2060 2061 \
+        --channels-to-save 2080 2081  \
         --window-ticks 10 \
         --min-amplitude-adc 0 \
         --norm-rate-adc-threshold-file "$threshold_file"

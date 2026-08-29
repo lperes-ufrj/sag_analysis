@@ -9,12 +9,12 @@ if (($# > 1)); then
     exit 2
 fi
 
-#analysis_timestamp=${1:-$(date +%Y%m%d_%H%M%S)}
-analysis_timestamp=20260828_212046
+analysis_timestamp=${1:-$(date +%Y%m%d_%H%M%S)}
+#analysis_timestamp=20260828_212046
 echo "Starting full coincidence pipeline"
 echo "Analysis timestamp: $analysis_timestamp"
 
-#"$SCRIPT_DIR/run_coincidences.sh" "$analysis_timestamp"
+"$SCRIPT_DIR/run_coincidences.sh" "$analysis_timestamp"
 "$SCRIPT_DIR/run_plot_wfs_all.sh" "$analysis_timestamp"
 
 echo
