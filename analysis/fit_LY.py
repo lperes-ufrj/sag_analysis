@@ -11,7 +11,10 @@ import time
 import dunestyle.matplotlib as dunestyle
 
 
-path_templates = Path("../filter/templates_large_pulses/")
+sample_label = '20260828_134009'
+script_dir = Path(__file__).resolve().parent
+repo_dir = script_dir.parent
+path_templates = repo_dir / "filter/templates_large_pulses"
 
 templates_ch_1010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
 templates_ch_1011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
@@ -84,10 +87,9 @@ list_templates_charge = {
 }
 
 
-path_waveforms = Path("../coincidence/selected_waveforms/new_selection")
-path_waveforms
-# Exclude every sample from the decreasing-HV scan.
-excluded_runs = {39500, 39501, 39502, 39503, 39504, 39506, 39507, 39508}
+path_waveforms = (
+    repo_dir / "coincidence/selected_waveforms" / sample_label
+)
 
 run_to_efield = {
     # Zero-field reference
@@ -189,7 +191,7 @@ def Calc_Charge(waveform, template_charge):
 
 def calculate_study_XA(csv_suffix, channels):
     csv_files = sorted(
-        path_waveforms.glob(f"channel_*_run_*_{csv_suffix}")
+        path_waveforms.glob(f"channel_*run*{csv_suffix}")
     )
 
     print(csv_files)
@@ -203,8 +205,7 @@ def calculate_study_XA(csv_suffix, channels):
 
         channel = int(match.group(1))
         run = int(match.group(2))
-        if channel not in channels or run in excluded_runs:
-            continue
+
         if run not in run_to_efield:
             print(f"Run {run:06d} has no electric-field mapping. Skipping.")
             continue
@@ -328,26 +329,20 @@ study_configs_datasets = [
         "label": "This study — mean all channels for M5, M6 and M8 ",
         "datasets": [
             {
-                "csv_suffix": (
-                    "coinc_2070-2071-2080-2081_vs_2010-2021_"
-                    "save_1020-1021-1040-1041-1060-1061-1080-1081-"
-                    "2030-2031-2040-2041-2050-2051-2060-2061_"
-                    "window_10_ticks_min_amplitude_0_adc.csv"
-                ),
+                "csv_suffix": f"{sample_label}.csv",
                 "channels": {2060,2061,2050,2051},
             },
-            {
-                "csv_suffix": (
-                    "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
-                    "save_2080-2081_"
-                    "window_10_ticks_min_amplitude_0_adc.csv"
-                ),
-                "channels": {2080, 2081},
-            },
+            #{
+            #    "csv_suffix": (
+            #        "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
+            #        "save_2080-2081_"
+            #        "window_10_ticks_min_amplitude_0_adc.csv"
+            #    ),
+            #    "channels": {2080, 2081},
+            #},
         ],
     },
 ]
-
 
 
 
@@ -404,19 +399,19 @@ fit_mask = (
     & (sems > 0.0)
 )
 
-#cost = LeastSquares(
-#    efields[fit_mask],
-#    means[fit_mask],
-#    sems[fit_mask],
-#    LArQL,
-#)
-
 cost = LeastSquares(
-    efield_previous,
-    relative_s1_previous,
-    relative_s1_previous*0.01,
+    efields[fit_mask],
+    means[fit_mask],
+    sems[fit_mask],
     LArQL,
 )
+
+#cost = LeastSquares(
+#    efield_previous,
+#    relative_s1_previous,
+#    relative_s1_previous*0.01,
+#    LArQL,
+#)
 
 m = Minuit(cost, 
            B_1 = 0.92,
@@ -424,12 +419,11 @@ m = Minuit(cost,
            E_0 = 0.05,
            k_e = 0.07)
 
-
 m.interactive()
 m.migrad()
 m.hesse()
 
-ndof = len(efields[fit_mask]) - m.nfit
+ndof = np.count_nonzero(fit_mask) - m.nfit
 reduced_chi2 = m.fval / ndof
 
 with plt.rc_context({
@@ -471,8 +465,8 @@ with plt.rc_context({
     rf" = {reduced_chi2:.2f}$"
     )
     ax.text(
-    1.5,
-    0.5,
+    0.97,
+    0.97,
     fit_text,
     transform=ax.transAxes,
     ha="right",
@@ -515,7 +509,7 @@ with plt.rc_context({
         label="Reference data PD-HD",
         zorder=5,
     )
-    x_fit = np.linspace(0, study["efields"].max(), 500)
+    x_fit = np.linspace(0, efields.max(), 500)
 
     y_fit = LArQL(
     x_fit,
@@ -577,5 +571,7 @@ with plt.rc_context({
         frameon=True,
         title="Data Set",
     )
-    plt.savefig("../plots/LY_fit.png", format='png', dpi=150)
+    output_dir = repo_dir / "plots"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / "LY_fit.png", format='png', dpi=150)
     plt.show()
