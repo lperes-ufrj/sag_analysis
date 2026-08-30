@@ -34,6 +34,7 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
+constexpr std::size_t DEFAULT_MAX_PEAKS_SIGNAL_REGION = 1;
 constexpr double MAX_FULL_RANGE_AMPLITUDE = 9000.0;
 constexpr int MAX_WAVEFORM_DENSITY_Y_BINS = 2000;
 const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
@@ -48,6 +49,7 @@ struct Options {
     fs::path csv_file;
     std::string csv_suffix = DEFAULT_CSV_SUFFIX;
     double max_auxiliary_amplitude = DEFAULT_MAX_AUXILIARY_AMPLITUDE;
+    std::size_t max_peaks_signal_region = DEFAULT_MAX_PEAKS_SIGNAL_REGION;
 };
 
 struct WaveformKey {
@@ -158,6 +160,8 @@ void printUsage(const char *program)
         << "  --csv-suffix SUFFIX          Selection CSV filename suffix\n"
         << "  --max-auxiliary-amplitude N  Absolute |ADC - baseline| limit in noise/"
         << "post-signal regions (default: 500)\n"
+        << "  --max-peaks-signal-region N  Maximum peak candidates allowed in the "
+        << "signal region (default: 1)\n"
         << "  -h, --help                    Show this help\n";
 }
 
@@ -176,13 +180,29 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
         if (argument == "--config" || argument == "--output-dir"
             || argument == "--csv"
             || argument == "--csv-suffix"
-            || argument == "--max-auxiliary-amplitude") {
+            || argument == "--max-auxiliary-amplitude"
+            || argument == "--max-peaks-signal-region") {
             if (++index >= argc) throw std::runtime_error("Missing value for " + argument);
             if (argument == "--config") options.config = argv[index];
             else if (argument == "--output-dir") options.output_dir = argv[index];
             else if (argument == "--csv") options.csv_file = argv[index];
             else if (argument == "--csv-suffix") options.csv_suffix = argv[index];
-            else options.max_auxiliary_amplitude = std::stod(argv[index]);
+            else if (argument == "--max-auxiliary-amplitude") {
+                options.max_auxiliary_amplitude = std::stod(argv[index]);
+            } else {
+                const std::string value = argv[index];
+                std::size_t parsed_characters = 0;
+                const unsigned long long parsed = value.empty() || value.front() == '-'
+                    ? 0
+                    : std::stoull(value, &parsed_characters);
+                if (parsed_characters != value.size() || parsed == 0
+                    || parsed > std::numeric_limits<std::size_t>::max()) {
+                    throw std::runtime_error(
+                        "Maximum signal-region peak count must be a positive integer"
+                    );
+                }
+                options.max_peaks_signal_region = static_cast<std::size_t>(parsed);
+            }
             continue;
         }
         if (!argument.empty() && argument.front() == '-') {
@@ -387,7 +407,8 @@ WaveformSelections loadWaveforms(
     TChain &chain,
     const std::vector<LocatedWaveform> &located,
     const WaveformAnalyzer &analyzer,
-    double max_auxiliary_amplitude
+    double max_auxiliary_amplitude,
+    std::size_t max_peaks_signal_region
 )
 {
     chain.ResetBranchAddresses();
@@ -429,7 +450,8 @@ WaveformSelections loadWaveforms(
         const PeakSearchResult peak = analyzer.findPeak(*adc, item.key.channel);
         const bool fails_primary_peak = peak.primary_outside_signal_region;
         const bool fails_additional_peak = peak.additional_outside_signal_region;
-        const bool fails_signal_peak_count = peak.signal_peak_count != 1;
+        const bool fails_signal_peak_count =
+            peak.signal_peak_count > max_peaks_signal_region;
         const bool fails_missing_primary_peak = !peak.found;
 
         rejected_noise += item.multiplicity * static_cast<std::size_t>(fails_noise);
@@ -471,7 +493,8 @@ WaveformSelections loadWaveforms(
         << rejected_primary_peak_outside_signal << '\n'
         << "  Primary peak inside with another peak outside signal region: "
         << rejected_additional_peak_outside_signal << '\n'
-        << "  Signal region does not contain exactly one peak candidate: "
+        << "  Signal region contains more than " << max_peaks_signal_region
+        << " peak candidate(s): "
         << rejected_signal_peak_count << '\n'
         << "  No primary peak found: " << rejected_missing_primary_peak << '\n';
     selections.cuts = {
@@ -499,6 +522,7 @@ void writeCutSummary(
     std::size_t selected_rows,
     std::size_t unique_located_waveforms,
     double max_auxiliary_amplitude,
+    std::size_t max_peaks_signal_region,
     const WaveformAnalyzer &analyzer,
     const CutStatistics &cuts,
     const RecordsByChannel &final_selection
@@ -529,7 +553,8 @@ void writeCutSummary(
            << MAX_FULL_RANGE_AMPLITUDE << " ADC\n"
            << "4. Primary peak must be inside the configured signal region\n"
            << "5. No significant additional peak may be outside the signal region\n"
-           << "6. The signal region must contain exactly one peak candidate\n"
+           << "6. The signal region may contain at most "
+           << max_peaks_signal_region << " peak candidate(s)\n"
            << "7. A primary peak must be found\n\n"
            << "Peak-finder configuration\n"
            << "-------------------------\n"
@@ -619,7 +644,10 @@ void writeCutSummary(
         "Significant additional peak outside signal region",
         cuts.rejected_additional_peak_outside_signal
     );
-    write_counts("Signal-region peak count != 1", cuts.rejected_signal_peak_count);
+    write_counts(
+        "Signal-region peak count > " + std::to_string(max_peaks_signal_region),
+        cuts.rejected_signal_peak_count
+    );
     write_counts("No primary peak found", cuts.rejected_missing_primary_peak);
     write_counts("All cuts combined", cuts.rejected_combined);
 
@@ -1004,7 +1032,11 @@ void processInputList(
     std::cout << "Located ROOT entries: " << located.size() << '\n';
     const WaveformAnalyzer analyzer(options.config.string());
     const auto selections = loadWaveforms(
-        *chain, located, analyzer, options.max_auxiliary_amplitude
+        *chain,
+        located,
+        analyzer,
+        options.max_auxiliary_amplitude,
+        options.max_peaks_signal_region
     );
     const std::string label = options.csv_file.empty()
         ? "run_" + run + "_"
@@ -1023,6 +1055,7 @@ void processInputList(
         selected_rows,
         located.size(),
         options.max_auxiliary_amplitude,
+        options.max_peaks_signal_region,
         analyzer,
         selections.cuts,
         selections.final_selection

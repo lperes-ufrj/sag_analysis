@@ -11,7 +11,7 @@ import time
 import dunestyle.matplotlib as dunestyle
 
 
-sample_label = '20260828_134009'
+sample_label = '20260829_094702'
 script_dir = Path(__file__).resolve().parent
 repo_dir = script_dir.parent
 path_templates = repo_dir / "filter/templates_large_pulses"
@@ -326,11 +326,11 @@ def calculate_study_mean_all(datasets):
 
 study_configs_datasets = [
     {
-        "label": "This study — mean all channels for M5, M6 and M8 ",
+        "label": "This study — mean all channels for M1, channel 2010 ",
         "datasets": [
             {
                 "csv_suffix": f"{sample_label}.csv",
-                "channels": {2060,2061,2050,2051},
+                "channels": {2080,2081},
             },
             #{
             #    "csv_suffix": (
