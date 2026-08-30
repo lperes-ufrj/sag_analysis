@@ -1,0 +1,1112 @@
+Coincidence analysis summary
+============================
+Analysis identifier: 20260829_141821
+
+Run 039500
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039500_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039500.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039500_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 0 ADC
+  Channel 1081: >= 691.7 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7742861
+Unique input events analyzed: 5966
+Relevant-channel waveforms analyzed: 2719400
+Coincidence-channel waveforms analyzed: 2150850
+Coincidence-channel waveforms passing minimum amplitude: 2148172
+Coincidence-channel waveforms rejected by minimum amplitude: 2678
+Saved-channel waveforms analyzed: 568550
+Saved-channel waveforms passing their pre-coincidence cut: 554161
+Saved-channel waveforms rejected by their pre-coincidence cut: 14389
+Events with accepted relevant waveforms: 5966
+Events containing coincidence pairs: 5966
+Coincident pairs found: 1042480
+Final selected events written to CSV: 5966
+Final selected waveforms written to CSV: 184895
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17546/1/001/np02vd_raw_run039500_0000_df-s04-d0_dw_0_20250919T092443_155p7kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17546/1/001/np02vd_raw_run039500_0001_df-s04-d0_dw_0_20250919T092547_155p7kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17546/1/001/np02vd_raw_run039500_0002_df-s04-d0_dw_0_20250919T092651_155p7kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17546/1/001/np02vd_raw_run039500_0003_df-s04-d0_dw_0_20250919T092755_155p7kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17546/1/001/np02vd_raw_run039500_0004_df-s04-d0_dw_0_20250919T092859_155p7kV_gallery.root
+
+Run 039501
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039501_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039501.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039501_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 598.4 ADC
+  Channel 1081: >= 706.6 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7844722
+Unique input events analyzed: 5956
+Relevant-channel waveforms analyzed: 2759921
+Coincidence-channel waveforms analyzed: 2183152
+Coincidence-channel waveforms passing minimum amplitude: 2180362
+Coincidence-channel waveforms rejected by minimum amplitude: 2790
+Saved-channel waveforms analyzed: 576769
+Saved-channel waveforms passing their pre-coincidence cut: 556403
+Saved-channel waveforms rejected by their pre-coincidence cut: 20366
+Events with accepted relevant waveforms: 5956
+Events containing coincidence pairs: 5954
+Coincident pairs found: 1059049
+Final selected events written to CSV: 5952
+Final selected waveforms written to CSV: 187540
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17547/1/001/np02vd_raw_run039501_0000_df-s04-d0_dw_0_20250919T100945_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17547/1/001/np02vd_raw_run039501_0001_df-s04-d0_dw_0_20250919T101048_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17547/1/001/np02vd_raw_run039501_0002_df-s04-d0_dw_0_20250919T101152_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17547/1/001/np02vd_raw_run039501_0003_df-s04-d0_dw_0_20250919T101255_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17547/1/001/np02vd_raw_run039501_0004_df-s04-d0_dw_0_20250919T101358_140kV_gallery.root
+
+Run 039502
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039502_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039502.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039502_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 656.3 ADC
+  Channel 1081: >= 701.3 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7912784
+Unique input events analyzed: 5961
+Relevant-channel waveforms analyzed: 2788033
+Coincidence-channel waveforms analyzed: 2203524
+Coincidence-channel waveforms passing minimum amplitude: 2200661
+Coincidence-channel waveforms rejected by minimum amplitude: 2863
+Saved-channel waveforms analyzed: 584509
+Saved-channel waveforms passing their pre-coincidence cut: 557042
+Saved-channel waveforms rejected by their pre-coincidence cut: 27467
+Events with accepted relevant waveforms: 5961
+Events containing coincidence pairs: 5961
+Coincident pairs found: 1079607
+Final selected events written to CSV: 5958
+Final selected waveforms written to CSV: 190353
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17548/1/001/np02vd_raw_run039502_0000_df-s04-d0_dw_0_20250919T103136_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17548/1/001/np02vd_raw_run039502_0001_df-s04-d0_dw_0_20250919T103239_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17548/1/001/np02vd_raw_run039502_0002_df-s04-d0_dw_0_20250919T103341_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17548/1/001/np02vd_raw_run039502_0003_df-s04-d0_dw_0_20250919T103445_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17548/1/001/np02vd_raw_run039502_0004_df-s04-d0_dw_0_20250919T103547_120kV_gallery.root
+
+Run 039503
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039503_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039503.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039503_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 659.3 ADC
+  Channel 1081: >= 705.9 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7960361
+Unique input events analyzed: 5954
+Relevant-channel waveforms analyzed: 2819224
+Coincidence-channel waveforms analyzed: 2234125
+Coincidence-channel waveforms passing minimum amplitude: 2231113
+Coincidence-channel waveforms rejected by minimum amplitude: 3012
+Saved-channel waveforms analyzed: 585099
+Saved-channel waveforms passing their pre-coincidence cut: 556201
+Saved-channel waveforms rejected by their pre-coincidence cut: 28898
+Events with accepted relevant waveforms: 5954
+Events containing coincidence pairs: 5954
+Coincident pairs found: 1100661
+Final selected events written to CSV: 5949
+Final selected waveforms written to CSV: 189923
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0000_df-s04-d0_dw_0_20250919T105328_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0001_df-s04-d0_dw_0_20250919T105430_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0002_df-s04-d0_dw_0_20250919T105532_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0003_df-s04-d0_dw_0_20250919T105634_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17549/1/001/np02vd_raw_run039503_0004_df-s04-d0_dw_0_20250919T105736_100kV_gallery.root
+
+Run 039504
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039504_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039504.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039504_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 654.3 ADC
+  Channel 1081: >= 766.9 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8024980
+Unique input events analyzed: 5952
+Relevant-channel waveforms analyzed: 2845106
+Coincidence-channel waveforms analyzed: 2252958
+Coincidence-channel waveforms passing minimum amplitude: 2249827
+Coincidence-channel waveforms rejected by minimum amplitude: 3131
+Saved-channel waveforms analyzed: 592148
+Saved-channel waveforms passing their pre-coincidence cut: 557013
+Saved-channel waveforms rejected by their pre-coincidence cut: 35135
+Events with accepted relevant waveforms: 5952
+Events containing coincidence pairs: 5952
+Coincident pairs found: 1123454
+Final selected events written to CSV: 5950
+Final selected waveforms written to CSV: 193173
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17550/1/001/np02vd_raw_run039504_0000_df-s04-d0_dw_0_20250919T111324_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17550/1/001/np02vd_raw_run039504_0001_df-s04-d0_dw_0_20250919T111426_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17550/1/001/np02vd_raw_run039504_0002_df-s04-d0_dw_0_20250919T111527_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17550/1/001/np02vd_raw_run039504_0003_df-s04-d0_dw_0_20250919T111629_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17550/1/001/np02vd_raw_run039504_0004_df-s04-d0_dw_0_20250919T111730_80kV_gallery.root
+
+Run 039506
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039506_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039506.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039506_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 670.3 ADC
+  Channel 1081: >= 777 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8089832
+Unique input events analyzed: 5966
+Relevant-channel waveforms analyzed: 2880578
+Coincidence-channel waveforms analyzed: 2282064
+Coincidence-channel waveforms passing minimum amplitude: 2278684
+Coincidence-channel waveforms rejected by minimum amplitude: 3380
+Saved-channel waveforms analyzed: 598514
+Saved-channel waveforms passing their pre-coincidence cut: 558287
+Saved-channel waveforms rejected by their pre-coincidence cut: 40227
+Events with accepted relevant waveforms: 5966
+Events containing coincidence pairs: 5966
+Coincident pairs found: 1152750
+Final selected events written to CSV: 5965
+Final selected waveforms written to CSV: 195475
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17551/1/001/np02vd_raw_run039506_0000_df-s04-d0_dw_0_20250919T113240_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17551/1/001/np02vd_raw_run039506_0001_df-s04-d0_dw_0_20250919T113340_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17551/1/001/np02vd_raw_run039506_0002_df-s04-d0_dw_0_20250919T113441_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17551/1/001/np02vd_raw_run039506_0003_df-s04-d0_dw_0_20250919T113542_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17551/1/001/np02vd_raw_run039506_0004_df-s04-d0_dw_0_20250919T113643_60kV_gallery.root
+
+Run 039507
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039507_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039507.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039507_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 692.5 ADC
+  Channel 1081: >= 777.3 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8185706
+Unique input events analyzed: 5964
+Relevant-channel waveforms analyzed: 2904600
+Coincidence-channel waveforms analyzed: 2300869
+Coincidence-channel waveforms passing minimum amplitude: 2297203
+Coincidence-channel waveforms rejected by minimum amplitude: 3666
+Saved-channel waveforms analyzed: 603731
+Saved-channel waveforms passing their pre-coincidence cut: 558117
+Saved-channel waveforms rejected by their pre-coincidence cut: 45614
+Events with accepted relevant waveforms: 5964
+Events containing coincidence pairs: 5964
+Coincident pairs found: 1186031
+Final selected events written to CSV: 5962
+Final selected waveforms written to CSV: 197881
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17552/1/001/np02vd_raw_run039507_0000_df-s04-d0_dw_0_20250919T115237_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17552/1/001/np02vd_raw_run039507_0001_df-s04-d0_dw_0_20250919T115337_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17552/1/001/np02vd_raw_run039507_0002_df-s04-d0_dw_0_20250919T115437_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17552/1/001/np02vd_raw_run039507_0003_df-s04-d0_dw_0_20250919T115537_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17552/1/001/np02vd_raw_run039507_0004_df-s04-d0_dw_0_20250919T115637_40kV_gallery.root
+
+Run 039508
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039508_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039508.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 6
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039508_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 691.3 ADC
+  Channel 1081: >= 779.9 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8240895
+Unique input events analyzed: 5959
+Relevant-channel waveforms analyzed: 2943969
+Coincidence-channel waveforms analyzed: 2335713
+Coincidence-channel waveforms passing minimum amplitude: 2331555
+Coincidence-channel waveforms rejected by minimum amplitude: 4158
+Saved-channel waveforms analyzed: 608256
+Saved-channel waveforms passing their pre-coincidence cut: 557972
+Saved-channel waveforms rejected by their pre-coincidence cut: 50284
+Events with accepted relevant waveforms: 5959
+Events containing coincidence pairs: 5959
+Coincident pairs found: 1222552
+Final selected events written to CSV: 5956
+Final selected waveforms written to CSV: 200852
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17553/1/001/np02vd_raw_run039508_0000_df-s04-d0_dw_0_20250919T121446_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17553/1/001/np02vd_raw_run039508_0001_df-s04-d0_dw_0_20250919T121545_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17553/1/001/np02vd_raw_run039508_0002_df-s04-d0_dw_0_20250919T121644_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17553/1/001/np02vd_raw_run039508_0003_df-s04-d0_dw_0_20250919T121743_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17553/1/001/np02vd_raw_run039508_0004_df-s04-d0_dw_0_20250919T121843_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17553/1/001/np02vd_raw_run039508_0005_df-s04-d0_dw_0_20250919T121942_20kV_gallery.root
+
+Run 039510
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039510_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039510.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 6
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039510_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 690 ADC
+  Channel 1081: >= 786 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8292065
+Unique input events analyzed: 5969
+Relevant-channel waveforms analyzed: 2976332
+Coincidence-channel waveforms analyzed: 2366470
+Coincidence-channel waveforms passing minimum amplitude: 2361552
+Coincidence-channel waveforms rejected by minimum amplitude: 4918
+Saved-channel waveforms analyzed: 609862
+Saved-channel waveforms passing their pre-coincidence cut: 559101
+Saved-channel waveforms rejected by their pre-coincidence cut: 50761
+Events with accepted relevant waveforms: 5969
+Events containing coincidence pairs: 5969
+Coincident pairs found: 1274137
+Final selected events written to CSV: 5969
+Final selected waveforms written to CSV: 208801
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17518/1/001/np02vd_raw_run039510_0000_df-s04-d0_dw_0_20250919T123428_0kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17518/1/001/np02vd_raw_run039510_0001_df-s04-d0_dw_0_20250919T123526_0kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17518/1/001/np02vd_raw_run039510_0002_df-s04-d0_dw_0_20250919T123624_0kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17518/1/001/np02vd_raw_run039510_0003_df-s04-d0_dw_0_20250919T123722_0kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17518/1/001/np02vd_raw_run039510_0004_df-s04-d0_dw_0_20250919T123821_0kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17518/1/001/np02vd_raw_run039510_0005_df-s04-d0_dw_0_20250919T123919_0kV_gallery.root
+
+Run 039511
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039511_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039511.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 6
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039511_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 696.7 ADC
+  Channel 1081: >= 766.4 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8352308
+Unique input events analyzed: 5999
+Relevant-channel waveforms analyzed: 2990036
+Coincidence-channel waveforms analyzed: 2376296
+Coincidence-channel waveforms passing minimum amplitude: 2371439
+Coincidence-channel waveforms rejected by minimum amplitude: 4857
+Saved-channel waveforms analyzed: 613740
+Saved-channel waveforms passing their pre-coincidence cut: 562037
+Saved-channel waveforms rejected by their pre-coincidence cut: 51703
+Events with accepted relevant waveforms: 5999
+Events containing coincidence pairs: 5999
+Coincident pairs found: 1256515
+Final selected events written to CSV: 5999
+Final selected waveforms written to CSV: 205931
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17519/1/001/np02vd_raw_run039511_0000_df-s04-d0_dw_0_20250919T124939_10kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17519/1/001/np02vd_raw_run039511_0001_df-s04-d0_dw_0_20250919T125038_10kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17519/1/001/np02vd_raw_run039511_0002_df-s04-d0_dw_0_20250919T125136_10kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17519/1/001/np02vd_raw_run039511_0003_df-s04-d0_dw_0_20250919T125234_10kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17519/1/001/np02vd_raw_run039511_0004_df-s04-d0_dw_0_20250919T125332_10kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17519/1/001/np02vd_raw_run039511_0005_df-s04-d0_dw_0_20250919T125431_10kV_gallery.root
+
+Run 039512
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039512_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039512.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 6
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039512_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 694.4 ADC
+  Channel 1081: >= 747.4 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8226397
+Unique input events analyzed: 5954
+Relevant-channel waveforms analyzed: 2928323
+Coincidence-channel waveforms analyzed: 2324259
+Coincidence-channel waveforms passing minimum amplitude: 2319860
+Coincidence-channel waveforms rejected by minimum amplitude: 4399
+Saved-channel waveforms analyzed: 604064
+Saved-channel waveforms passing their pre-coincidence cut: 557133
+Saved-channel waveforms rejected by their pre-coincidence cut: 46931
+Events with accepted relevant waveforms: 5954
+Events containing coincidence pairs: 5952
+Coincident pairs found: 1212229
+Final selected events written to CSV: 5949
+Final selected waveforms written to CSV: 201145
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17520/1/001/np02vd_raw_run039512_0000_df-s04-d0_dw_0_20250919T130354_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17520/1/001/np02vd_raw_run039512_0001_df-s04-d0_dw_0_20250919T130453_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17520/1/001/np02vd_raw_run039512_0002_df-s04-d0_dw_0_20250919T130552_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17520/1/001/np02vd_raw_run039512_0003_df-s04-d0_dw_0_20250919T130651_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17520/1/001/np02vd_raw_run039512_0004_df-s04-d0_dw_0_20250919T130750_20kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17520/1/001/np02vd_raw_run039512_0005_df-s04-d0_dw_0_20250919T130849_20kV_gallery.root
+
+Run 039514
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039514_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039514.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 6
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039514_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 691.3 ADC
+  Channel 1081: >= 789.6 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8163631
+Unique input events analyzed: 5958
+Relevant-channel waveforms analyzed: 2913296
+Coincidence-channel waveforms analyzed: 2307977
+Coincidence-channel waveforms passing minimum amplitude: 2303780
+Coincidence-channel waveforms rejected by minimum amplitude: 4197
+Saved-channel waveforms analyzed: 605319
+Saved-channel waveforms passing their pre-coincidence cut: 557982
+Saved-channel waveforms rejected by their pre-coincidence cut: 47337
+Events with accepted relevant waveforms: 5958
+Events containing coincidence pairs: 5958
+Coincident pairs found: 1191242
+Final selected events written to CSV: 5956
+Final selected waveforms written to CSV: 199675
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17521/1/001/np02vd_raw_run039514_0000_df-s04-d0_dw_0_20250919T132013_30kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17521/1/001/np02vd_raw_run039514_0001_df-s04-d0_dw_0_20250919T132113_30kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17521/1/001/np02vd_raw_run039514_0002_df-s04-d0_dw_0_20250919T132213_30kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17521/1/001/np02vd_raw_run039514_0003_df-s04-d0_dw_0_20250919T132313_30kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17521/1/001/np02vd_raw_run039514_0004_df-s04-d0_dw_0_20250919T132413_30kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17521/1/001/np02vd_raw_run039514_0005_df-s04-d0_dw_0_20250919T132512_30kV_gallery.root
+
+Run 039515
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039515_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039515.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039515_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 682 ADC
+  Channel 1081: >= 818 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7911778
+Unique input events analyzed: 5798
+Relevant-channel waveforms analyzed: 2831068
+Coincidence-channel waveforms analyzed: 2241316
+Coincidence-channel waveforms passing minimum amplitude: 2237118
+Coincidence-channel waveforms rejected by minimum amplitude: 4198
+Saved-channel waveforms analyzed: 589752
+Saved-channel waveforms passing their pre-coincidence cut: 543010
+Saved-channel waveforms rejected by their pre-coincidence cut: 46742
+Events with accepted relevant waveforms: 5798
+Events containing coincidence pairs: 5798
+Coincident pairs found: 1146429
+Final selected events written to CSV: 5797
+Final selected waveforms written to CSV: 192502
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17522/1/001/np02vd_raw_run039515_0000_df-s04-d0_dw_0_20250919T133424_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17522/1/001/np02vd_raw_run039515_0001_df-s04-d0_dw_0_20250919T133524_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17522/1/001/np02vd_raw_run039515_0002_df-s04-d0_dw_0_20250919T133624_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17522/1/001/np02vd_raw_run039515_0003_df-s04-d0_dw_0_20250919T133724_40kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17522/1/001/np02vd_raw_run039515_0004_df-s04-d0_dw_0_20250919T133824_40kV_gallery.root
+
+Run 039516
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039516_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039516.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039516_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 677.2 ADC
+  Channel 1081: >= 778.6 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7866512
+Unique input events analyzed: 5798
+Relevant-channel waveforms analyzed: 2814712
+Coincidence-channel waveforms analyzed: 2232400
+Coincidence-channel waveforms passing minimum amplitude: 2228419
+Coincidence-channel waveforms rejected by minimum amplitude: 3981
+Saved-channel waveforms analyzed: 582312
+Saved-channel waveforms passing their pre-coincidence cut: 542707
+Saved-channel waveforms rejected by their pre-coincidence cut: 39605
+Events with accepted relevant waveforms: 5798
+Events containing coincidence pairs: 5798
+Coincident pairs found: 1130128
+Final selected events written to CSV: 5797
+Final selected waveforms written to CSV: 190605
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17523/1/001/np02vd_raw_run039516_0000_df-s04-d0_dw_0_20250919T134807_50kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17523/1/001/np02vd_raw_run039516_0001_df-s04-d0_dw_0_20250919T134917_50kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17523/1/001/np02vd_raw_run039516_0002_df-s04-d0_dw_0_20250919T135018_50kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17523/1/001/np02vd_raw_run039516_0003_df-s04-d0_dw_0_20250919T135118_50kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17523/1/001/np02vd_raw_run039516_0004_df-s04-d0_dw_0_20250919T135219_50kV_gallery.root
+
+Run 039517
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039517_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039517.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039517_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 653.6 ADC
+  Channel 1081: >= 717.8 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 8057240
+Unique input events analyzed: 5955
+Relevant-channel waveforms analyzed: 2868846
+Coincidence-channel waveforms analyzed: 2283040
+Coincidence-channel waveforms passing minimum amplitude: 2279207
+Coincidence-channel waveforms rejected by minimum amplitude: 3833
+Saved-channel waveforms analyzed: 585806
+Saved-channel waveforms passing their pre-coincidence cut: 556303
+Saved-channel waveforms rejected by their pre-coincidence cut: 29503
+Events with accepted relevant waveforms: 5955
+Events containing coincidence pairs: 5955
+Coincident pairs found: 1147561
+Final selected events written to CSV: 5952
+Final selected waveforms written to CSV: 193200
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17524/1/001/np02vd_raw_run039517_0000_df-s04-d0_dw_0_20250919T140400_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17524/1/001/np02vd_raw_run039517_0001_df-s04-d0_dw_0_20250919T140501_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17524/1/001/np02vd_raw_run039517_0002_df-s04-d0_dw_0_20250919T140602_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17524/1/001/np02vd_raw_run039517_0003_df-s04-d0_dw_0_20250919T140703_60kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17524/1/001/np02vd_raw_run039517_0004_df-s04-d0_dw_0_20250919T140803_60kV_gallery.root
+
+Run 039518
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039518_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039518.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039518_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 629.8 ADC
+  Channel 1081: >= 711.5 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7944501
+Unique input events analyzed: 5962
+Relevant-channel waveforms analyzed: 2837227
+Coincidence-channel waveforms analyzed: 2254259
+Coincidence-channel waveforms passing minimum amplitude: 2250843
+Coincidence-channel waveforms rejected by minimum amplitude: 3416
+Saved-channel waveforms analyzed: 582968
+Saved-channel waveforms passing their pre-coincidence cut: 557410
+Saved-channel waveforms rejected by their pre-coincidence cut: 25558
+Events with accepted relevant waveforms: 5962
+Events containing coincidence pairs: 5962
+Coincident pairs found: 1147194
+Final selected events written to CSV: 5962
+Final selected waveforms written to CSV: 197979
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17525/1/001/np02vd_raw_run039518_0000_df-s04-d0_dw_0_20250919T141755_70kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17525/1/001/np02vd_raw_run039518_0001_df-s04-d0_dw_0_20250919T141857_70kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17525/1/001/np02vd_raw_run039518_0002_df-s04-d0_dw_0_20250919T141958_70kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17525/1/001/np02vd_raw_run039518_0003_df-s04-d0_dw_0_20250919T142100_70kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17525/1/001/np02vd_raw_run039518_0004_df-s04-d0_dw_0_20250919T142202_70kV_gallery.root
+
+Run 039519
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039519_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039519.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039519_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 645.6 ADC
+  Channel 1081: >= 749.1 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7952829
+Unique input events analyzed: 5955
+Relevant-channel waveforms analyzed: 2833738
+Coincidence-channel waveforms analyzed: 2246585
+Coincidence-channel waveforms passing minimum amplitude: 2243404
+Coincidence-channel waveforms rejected by minimum amplitude: 3181
+Saved-channel waveforms analyzed: 587153
+Saved-channel waveforms passing their pre-coincidence cut: 556451
+Saved-channel waveforms rejected by their pre-coincidence cut: 30702
+Events with accepted relevant waveforms: 5955
+Events containing coincidence pairs: 5953
+Coincident pairs found: 1122308
+Final selected events written to CSV: 5951
+Final selected waveforms written to CSV: 192388
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17526/1/001/np02vd_raw_run039519_0000_df-s04-d0_dw_0_20250919T143154_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17526/1/001/np02vd_raw_run039519_0001_df-s04-d0_dw_0_20250919T143255_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17526/1/001/np02vd_raw_run039519_0002_df-s04-d0_dw_0_20250919T143357_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17526/1/001/np02vd_raw_run039519_0003_df-s04-d0_dw_0_20250919T143459_80kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17526/1/001/np02vd_raw_run039519_0004_df-s04-d0_dw_0_20250919T143601_80kV_gallery.root
+
+Run 039521
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039521_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039521.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039521_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 627.8 ADC
+  Channel 1081: >= 741 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7928689
+Unique input events analyzed: 5961
+Relevant-channel waveforms analyzed: 2818747
+Coincidence-channel waveforms analyzed: 2235100
+Coincidence-channel waveforms passing minimum amplitude: 2232045
+Coincidence-channel waveforms rejected by minimum amplitude: 3055
+Saved-channel waveforms analyzed: 583647
+Saved-channel waveforms passing their pre-coincidence cut: 557230
+Saved-channel waveforms rejected by their pre-coincidence cut: 26417
+Events with accepted relevant waveforms: 5961
+Events containing coincidence pairs: 5961
+Coincident pairs found: 1109323
+Final selected events written to CSV: 5960
+Final selected waveforms written to CSV: 190966
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17527/1/001/np02vd_raw_run039521_0000_df-s04-d0_dw_0_20250919T144536_90kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17527/1/001/np02vd_raw_run039521_0001_df-s04-d0_dw_0_20250919T144638_90kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17527/1/001/np02vd_raw_run039521_0002_df-s04-d0_dw_0_20250919T144740_90kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17527/1/001/np02vd_raw_run039521_0003_df-s04-d0_dw_0_20250919T144842_90kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17527/1/001/np02vd_raw_run039521_0004_df-s04-d0_dw_0_20250919T144944_90kV_gallery.root
+
+Run 039522
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039522_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039522.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039522_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 0 ADC
+  Channel 1081: >= 712.7 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7876689
+Unique input events analyzed: 5980
+Relevant-channel waveforms analyzed: 2791077
+Coincidence-channel waveforms analyzed: 2214923
+Coincidence-channel waveforms passing minimum amplitude: 2211891
+Coincidence-channel waveforms rejected by minimum amplitude: 3032
+Saved-channel waveforms analyzed: 576154
+Saved-channel waveforms passing their pre-coincidence cut: 558837
+Saved-channel waveforms rejected by their pre-coincidence cut: 17317
+Events with accepted relevant waveforms: 5980
+Events containing coincidence pairs: 5980
+Coincident pairs found: 1107392
+Final selected events written to CSV: 5979
+Final selected waveforms written to CSV: 192344
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17528/1/001/np02vd_raw_run039522_0000_df-s04-d0_dw_0_20250919T150024_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17528/1/001/np02vd_raw_run039522_0001_df-s04-d0_dw_0_20250919T150126_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17528/1/001/np02vd_raw_run039522_0002_df-s04-d0_dw_0_20250919T150229_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17528/1/001/np02vd_raw_run039522_0003_df-s04-d0_dw_0_20250919T150332_100kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17528/1/001/np02vd_raw_run039522_0004_df-s04-d0_dw_0_20250919T150434_100kV_gallery.root
+
+Run 039523
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039523_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039523.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039523_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 0 ADC
+  Channel 1081: >= 707.6 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7826700
+Unique input events analyzed: 5966
+Relevant-channel waveforms analyzed: 2769627
+Coincidence-channel waveforms analyzed: 2196601
+Coincidence-channel waveforms passing minimum amplitude: 2193759
+Coincidence-channel waveforms rejected by minimum amplitude: 2842
+Saved-channel waveforms analyzed: 573026
+Saved-channel waveforms passing their pre-coincidence cut: 556718
+Saved-channel waveforms rejected by their pre-coincidence cut: 16308
+Events with accepted relevant waveforms: 5966
+Events containing coincidence pairs: 5964
+Coincident pairs found: 1091518
+Final selected events written to CSV: 5963
+Final selected waveforms written to CSV: 190663
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17529/1/001/np02vd_raw_run039523_0000_df-s04-d0_dw_0_20250919T151445_110kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17529/1/001/np02vd_raw_run039523_0001_df-s04-d0_dw_0_20250919T151548_110kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17529/1/001/np02vd_raw_run039523_0002_df-s04-d0_dw_0_20250919T151650_110kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17529/1/001/np02vd_raw_run039523_0003_df-s04-d0_dw_0_20250919T151754_110kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17529/1/001/np02vd_raw_run039523_0004_df-s04-d0_dw_0_20250919T151856_110kV_gallery.root
+
+Run 039525
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039525_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039525.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039525_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 0 ADC
+  Channel 1081: >= 702.7 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7779212
+Unique input events analyzed: 5955
+Relevant-channel waveforms analyzed: 2752482
+Coincidence-channel waveforms analyzed: 2181201
+Coincidence-channel waveforms passing minimum amplitude: 2178265
+Coincidence-channel waveforms rejected by minimum amplitude: 2936
+Saved-channel waveforms analyzed: 571281
+Saved-channel waveforms passing their pre-coincidence cut: 555435
+Saved-channel waveforms rejected by their pre-coincidence cut: 15846
+Events with accepted relevant waveforms: 5955
+Events containing coincidence pairs: 5952
+Coincident pairs found: 1075951
+Final selected events written to CSV: 5949
+Final selected waveforms written to CSV: 188791
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17530/1/001/np02vd_raw_run039525_0000_df-s04-d0_dw_0_20250919T152823_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17530/1/001/np02vd_raw_run039525_0001_df-s04-d0_dw_0_20250919T152927_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17530/1/001/np02vd_raw_run039525_0002_df-s04-d0_dw_0_20250919T153030_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17530/1/001/np02vd_raw_run039525_0003_df-s04-d0_dw_0_20250919T153133_120kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17530/1/001/np02vd_raw_run039525_0004_df-s04-d0_dw_0_20250919T153236_120kV_gallery.root
+
+Run 039526
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039526_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039526.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039526_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 0 ADC
+  Channel 1081: >= 691.9 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7770027
+Unique input events analyzed: 5958
+Relevant-channel waveforms analyzed: 2748971
+Coincidence-channel waveforms analyzed: 2178743
+Coincidence-channel waveforms passing minimum amplitude: 2175978
+Coincidence-channel waveforms rejected by minimum amplitude: 2765
+Saved-channel waveforms analyzed: 570228
+Saved-channel waveforms passing their pre-coincidence cut: 555951
+Saved-channel waveforms rejected by their pre-coincidence cut: 14277
+Events with accepted relevant waveforms: 5958
+Events containing coincidence pairs: 5958
+Coincident pairs found: 1077929
+Final selected events written to CSV: 5954
+Final selected waveforms written to CSV: 189724
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17531/1/001/np02vd_raw_run039526_0000_df-s04-d0_dw_0_20250919T154239_130kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17531/1/001/np02vd_raw_run039526_0001_df-s04-d0_dw_0_20250919T154343_130kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17531/1/001/np02vd_raw_run039526_0002_df-s04-d0_dw_0_20250919T154446_130kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17531/1/001/np02vd_raw_run039526_0003_df-s04-d0_dw_0_20250919T154549_130kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17531/1/001/np02vd_raw_run039526_0004_df-s04-d0_dw_0_20250919T154653_130kV_gallery.root
+
+Run 039527
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039527_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039527.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039527_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 319.2 ADC
+  Channel 1081: >= 664.3 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7764544
+Unique input events analyzed: 5966
+Relevant-channel waveforms analyzed: 2747396
+Coincidence-channel waveforms analyzed: 2178424
+Coincidence-channel waveforms passing minimum amplitude: 2175578
+Coincidence-channel waveforms rejected by minimum amplitude: 2846
+Saved-channel waveforms analyzed: 568972
+Saved-channel waveforms passing their pre-coincidence cut: 556676
+Saved-channel waveforms rejected by their pre-coincidence cut: 12296
+Events with accepted relevant waveforms: 5966
+Events containing coincidence pairs: 5966
+Coincident pairs found: 1077936
+Final selected events written to CSV: 5961
+Final selected waveforms written to CSV: 189498
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17532/1/001/np02vd_raw_run039527_0000_df-s04-d0_dw_0_20250919T155835_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17532/1/001/np02vd_raw_run039527_0001_df-s04-d0_dw_0_20250919T155939_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17532/1/001/np02vd_raw_run039527_0002_df-s04-d0_dw_0_20250919T160043_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17532/1/001/np02vd_raw_run039527_0003_df-s04-d0_dw_0_20250919T160146_140kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17532/1/001/np02vd_raw_run039527_0004_df-s04-d0_dw_0_20250919T160250_140kV_gallery.root
+
+Run 039528
+----------
+Analysis identifier: 20260829_141821
+CSV output: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260829_141821/coincidence_scan_run_039528_20260829_141821.csv
+Input list: /exp/dune/app/users/lperes/sag_analysis/input_lists/input_run039528.txt
+Waveform configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Input ROOT files: 5
+
+Selection configuration
+-----------------------
+Coincidence channels (left): 2030, 2031, 2040, 2041, 1070, 1071
+Coincidence channels (right): 2070, 2071, 2080, 2081
+Saved channels: 1080, 1081
+Coincidence window: 10 ticks (160 ns)
+Minimum baseline-subtracted amplitude: > 0 ADC
+Normalized-rate ADC-threshold file: /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/equalized_run_039528_thresholds.txt
+Normalized-rate ADC thresholds applied before coincidence matching:
+  Channel 1080: >= 0 ADC
+  Channel 1081: >= 626.4 ADC
+Threshold amplitude definition: max(ADC[50:1023]) - mean(ADC[0:50])
+
+Processing statistics
+---------------------
+Tree entries analyzed: 7712212
+Unique input events analyzed: 5962
+Relevant-channel waveforms analyzed: 2725115
+Coincidence-channel waveforms analyzed: 2163472
+Coincidence-channel waveforms passing minimum amplitude: 2160722
+Coincidence-channel waveforms rejected by minimum amplitude: 2750
+Saved-channel waveforms analyzed: 561643
+Saved-channel waveforms passing their pre-coincidence cut: 555706
+Saved-channel waveforms rejected by their pre-coincidence cut: 5937
+Events with accepted relevant waveforms: 5962
+Events containing coincidence pairs: 5962
+Coincident pairs found: 1064319
+Final selected events written to CSV: 5960
+Final selected waveforms written to CSV: 188171
+
+Input ROOT files
+----------------
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17533/1/001/np02vd_raw_run039528_0000_df-s04-d0_dw_0_20250919T161241_150kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17533/1/001/np02vd_raw_run039528_0001_df-s04-d0_dw_0_20250919T161345_150kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17533/1/001/np02vd_raw_run039528_0002_df-s04-d0_dw_0_20250919T161449_150kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17533/1/001/np02vd_raw_run039528_0003_df-s04-d0_dw_0_20250919T161553_150kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/17533/1/001/np02vd_raw_run039528_0004_df-s04-d0_dw_0_20250919T161657_150kV_gallery.root
