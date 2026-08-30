@@ -79,6 +79,7 @@ for index in "${!selection_csvs[@]}"; do
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --output-dir "$OUTPUT_DIR" \
         --csv "$selection_csv" \
+        --max-peaks-signal-region 3 \
         --max-auxiliary-amplitude "$MAX_AUXILIARY_AMPLITUDE" \
         "$input_file"; then
         successful_runs+=("$run")

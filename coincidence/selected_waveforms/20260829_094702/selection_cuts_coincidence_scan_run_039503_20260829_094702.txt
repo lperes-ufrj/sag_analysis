@@ -15,7 +15,7 @@ Applied cuts
 3. Full-waveform positive amplitude above baseline <= 9000 ADC
 4. Primary peak must be inside the configured signal region
 5. No significant additional peak may be outside the signal region
-6. The signal region must contain exactly one peak candidate
+6. The signal region may contain at most 3 peak candidate(s)
 7. A primary peak must be found
 
 Peak-finder configuration
@@ -33,8 +33,8 @@ Channel 2081: noise=[0, 50), signal=[50, 180), post_signal=[500, 1023)
 Final-selection baseline noise
 ------------------------------
 Definition: sample standard deviation of all baseline-subtracted ADC values pooled from ticks [0, 50) of the final-selection waveforms.
-Channel 2080: 8.70336 ADC (waveforms=19078, baseline samples=953900)
-Channel 2081: 8.74505 ADC (waveforms=19403, baseline samples=970150)
+Channel 2080: 8.21475 ADC (waveforms=26220, baseline samples=1311000)
+Channel 2081: 8.1983 ADC (waveforms=25682, baseline samples=1284100)
 
 Cut results
 -----------
@@ -45,9 +45,9 @@ Post-signal amplitude                                                55647      
 Full-range amplitude                                                 57751         325
 Primary peak outside signal region                                   56325        1751
 Significant additional peak outside signal region                    54182        3894
-Signal-region peak count != 1                                        42555       15521
+Signal-region peak count > 3                                         57698         378
 No primary peak found                                                58073           3
-All cuts combined                                                    38481       19595
+All cuts combined                                                    51902        6174
 
-Final selected waveforms: 38481
+Final selected waveforms: 51902
 Note: individual rejection categories can overlap; therefore their rejected counts should not be summed.
