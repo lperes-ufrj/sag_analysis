@@ -609,6 +609,7 @@ Statistics calculateStatistics(const std::vector<WaveformRecord> &records)
     result.samples.resize(sample_count);
     result.mean.resize(sample_count);
     result.median.resize(sample_count);
+    result.mean_uncertainty.resize(sample_count); 
     result.percentile_16.resize(sample_count);
     result.percentile_84.resize(sample_count);
     std::vector<float> values(records.size());
@@ -928,19 +929,19 @@ void processInputList(
     const std::string csv_name = "waveforms_run_" + run + "_" + options.csv_suffix;
     
     fs::path csv_file;
-    
+
     if (!options.csv_file.empty()) {
         csv_file = options.csv_file;
     } else {
         const std::string csv_name =
             "waveforms_run_" + run + "_" + options.csv_suffix;
-    
+
         csv_file = input_list.parent_path() / csv_name;
         if (!fs::is_regular_file(csv_file)) {
             csv_file = program_dir / csv_name;
         }
     }
-    
+
     if (!fs::is_regular_file(csv_file)) {
         throw std::runtime_error(
             "Selection CSV not found: " + csv_file.string()
