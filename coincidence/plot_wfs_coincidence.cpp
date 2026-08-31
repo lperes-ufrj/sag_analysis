@@ -35,6 +35,7 @@ namespace {
 
 constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
 constexpr double MAX_FULL_RANGE_AMPLITUDE = 9000.0;
+constexpr int MAX_WAVEFORM_DENSITY_Y_BINS = 2000;
 const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
 const std::string DEFAULT_CSV_SUFFIX =
     "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
@@ -44,6 +45,7 @@ struct Options {
     std::vector<fs::path> input_lists;
     fs::path config;
     fs::path output_dir;
+    fs::path csv_file;
     std::string csv_suffix = DEFAULT_CSV_SUFFIX;
     double max_auxiliary_amplitude = DEFAULT_MAX_AUXILIARY_AMPLITUDE;
 };
@@ -84,11 +86,29 @@ struct WaveformRecord {
 };
 
 using RecordsByChannel = std::map<unsigned int, std::vector<WaveformRecord>>;
+struct CutStatistics {
+    std::size_t from_coincidence = 0;
+    std::size_t rejected_noise = 0;
+    std::size_t rejected_post_signal = 0;
+    std::size_t rejected_full_range_amplitude = 0;
+    std::size_t rejected_primary_peak_outside_signal = 0;
+    std::size_t rejected_additional_peak_outside_signal = 0;
+    //std::size_t rejected_signal_peak_count = 0;
+    //std::size_t rejected_missing_primary_peak = 0;
+    std::size_t rejected_combined = 0;
+    std::size_t final_selection = 0;
+};
 
+struct WaveformSelections {
+    RecordsByChannel from_coincidence;
+    RecordsByChannel final_selection;
+    CutStatistics cuts;
+};
 struct Statistics {
     std::vector<std::int64_t> samples;
-    std::vector<float> mean;
-    std::vector<float> median;
+    std::vector<double> mean;
+    std::vector<double> mean_uncertainty;
+    std::vector<double> median;
     std::vector<double> percentile_16;
     std::vector<double> percentile_84;
 };
@@ -132,6 +152,7 @@ void printUsage(const char *program)
         << "Options:\n"
         << "  --config FILE                 Waveform interval INI file\n"
         << "  --output-dir DIR             Output directory\n"
+        << "  --csv FILE                   Explicit timestamped selection CSV\n"
         << "  --csv-suffix SUFFIX          Selection CSV filename suffix\n"
         << "  --max-auxiliary-amplitude N  Noise/post-signal limit in ADC (default: 500)\n"
         << "  -h, --help                    Show this help\n";
@@ -155,6 +176,7 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
             if (++index >= argc) throw std::runtime_error("Missing value for " + argument);
             if (argument == "--config") options.config = argv[index];
             else if (argument == "--output-dir") options.output_dir = argv[index];
+            else if (argument == "--csv") options.csv_file = argv[index];
             else if (argument == "--csv-suffix") options.csv_suffix = argv[index];
             else options.max_auxiliary_amplitude = std::stod(argv[index]);
             continue;
@@ -339,7 +361,7 @@ double fullRangeAmplitude(const std::vector<short> &adc, double baseline)
     return static_cast<double>(*std::max_element(adc.begin(), adc.end())) - baseline;
 }
 
-RecordsByChannel loadWaveforms(
+WaveformSelections loadWaveforms(
     TChain &chain,
     const std::vector<LocatedWaveform> &located,
     const WaveformAnalyzer &analyzer,
@@ -352,7 +374,7 @@ RecordsByChannel loadWaveforms(
     std::vector<short> *adc = nullptr;
     chain.SetBranchAddress("adc", &adc);
 
-    RecordsByChannel records;
+    WaveformSelections selections;
     std::size_t rejected_noise = 0;
     std::size_t rejected_post_signal = 0;
     std::size_t rejected_full_range_amplitude = 0;
@@ -366,6 +388,9 @@ RecordsByChannel loadWaveforms(
             throw std::runtime_error("Could not read ROOT ADC entry " + std::to_string(item.entry));
         }
         const double baseline = analyzer.noiseBaseline(*adc, item.key.channel);
+        for (std::size_t copy = 0; copy < item.multiplicity; ++copy) {
+            selections.from_coincidence[item.key.channel].push_back({baseline, *adc});
+        }
         const double noise_amplitude = maximumInRegion(
             *adc, analyzer, item.key.channel, "noise"
         ) - baseline;
@@ -395,7 +420,7 @@ RecordsByChannel loadWaveforms(
             continue;
         }
         for (std::size_t copy = 0; copy < item.multiplicity; ++copy) {
-            records[item.key.channel].push_back({baseline, *adc});
+            selections.final_selection[item.key.channel].push_back({baseline, *adc});
         }
     }
 
@@ -414,8 +439,148 @@ RecordsByChannel loadWaveforms(
         << rejected_primary_peak_outside_signal << '\n'
         << "  Primary peak inside with another peak outside signal region: "
         << rejected_additional_peak_outside_signal << '\n';
-    return records;
+    selections.cuts  = {
+        total,
+        rejected_noise,
+        rejected_post_signal,
+        rejected_full_range_amplitude,
+        rejected_primary_peak_outside_signal,
+        rejected_additional_peak_outside_signal,
+        rejected_total,
+        total - rejected_total
+    };
+    return selections;
 }
+
+void writeCutSummary(
+    const fs::path &filename,
+    const std::string &run,
+    const fs::path &input_list,
+    const fs::path &selection_csv,
+    const fs::path &config,
+    const std::set<unsigned int> &channels,
+    std::size_t selected_rows,
+    std::size_t unique_located_waveforms,
+    double max_auxiliary_amplitude,
+    const WaveformAnalyzer &analyzer,
+    const CutStatistics &cuts,
+    const RecordsByChannel &final_selection
+)
+{
+    std::ofstream output(filename);
+    if (!output) {
+        throw std::runtime_error("Could not create cut summary: " + filename.string());
+    }
+
+    output << "Waveform selection cut summary\n"
+           << "==============================\n"
+           << "Run: " << run << '\n'
+           << "Input list: " << input_list.string() << '\n'
+           << "Coincidence selection CSV: " << selection_csv.string() << '\n'
+           << "Waveform interval configuration: " << config.string() << '\n'
+           << "Rows in coincidence CSV: " << selected_rows << '\n'
+           << "Unique ROOT waveforms located: " << unique_located_waveforms << '\n'
+           << "Waveforms entering selection, including CSV multiplicity: "
+           << cuts.from_coincidence << "\n\n"
+           << "Applied cuts\n"
+           << "------------\n"
+           << "1. Noise-region maximum absolute  <= "
+           << max_auxiliary_amplitude << " ADC\n"
+           << "2. Post-signal maximum absolute  <= "
+           << max_auxiliary_amplitude << " ADC\n"
+           << "3. Full-waveform positive amplitude above baseline <= "
+           << MAX_FULL_RANGE_AMPLITUDE << " ADC\n"
+           << "4. Primary peak must be inside the configured signal region\n"
+           << "5. No significant additional peak may be outside the signal region\n"
+           << "------------------------------------------------\n";
+
+    for (const unsigned int channel : channels) {
+        const auto noise = analyzer.interval(channel, "noise");
+        const auto signal = analyzer.interval(channel, "signal");
+        const auto post_signal = analyzer.interval(channel, "post_signal");
+        output << "Channel " << channel
+               << ": noise=[" << noise.first << ", " << noise.second << ")"
+               << ", signal=[" << signal.first << ", " << signal.second << ")"
+               << ", post_signal=[" << post_signal.first << ", "
+               << post_signal.second << ")\n";
+    }
+
+    output << "\nFinal-selection baseline noise\n"
+           << "------------------------------\n"
+           << "Definition: sample standard deviation of all baseline-subtracted "
+           << "ADC values pooled from ticks [0, 50) of the final-selection waveforms.\n";
+    for (const unsigned int channel : channels) {
+        const auto found = final_selection.find(channel);
+        if (found == final_selection.end() || found->second.empty()) {
+            output << "Channel " << channel << ": no final-selection waveforms\n";
+            continue;
+        }
+
+        std::size_t sample_count = 0;
+        double mean = 0.0;
+        double sum_squared_difference = 0.0;
+        for (const auto &record : found->second) {
+            const std::size_t stop = std::min<std::size_t>(50, record.adc.size());
+            for (std::size_t sample = 0; sample < stop; ++sample) {
+                const double value = static_cast<double>(record.adc[sample])
+                    - record.baseline;
+                ++sample_count;
+                const double difference = value - mean;
+                mean += difference / static_cast<double>(sample_count);
+                const double updated_difference = value - mean;
+                sum_squared_difference += difference * updated_difference;
+            }
+        }
+
+        output << "Channel " << channel << ": ";
+        if (sample_count > 1) {
+            const double standard_deviation = std::sqrt(
+                sum_squared_difference / static_cast<double>(sample_count - 1)
+            );
+            output << standard_deviation << " ADC";
+        } else {
+            output << "not enough samples";
+        }
+        output << " (waveforms=" << found->second.size()
+               << ", baseline samples=" << sample_count << ")\n";
+    }
+
+    const auto write_counts = [&](const std::string &criterion, std::size_t rejected) {
+        output << std::left << std::setw(62) << criterion
+               << std::right << std::setw(12) << cuts.from_coincidence - rejected
+               << std::setw(12) << rejected << '\n';
+    };
+
+    output << "\nCut results\n"
+           << "-----------\n"
+           << std::left << std::setw(62) << "Criterion"
+           << std::right << std::setw(12) << "Accepted"
+           << std::setw(12) << "Rejected" << '\n'
+           << std::string(86, '-') << '\n';
+    write_counts("Noise-region amplitude", cuts.rejected_noise);
+    write_counts("Post-signal amplitude", cuts.rejected_post_signal);
+    write_counts("Full-range amplitude", cuts.rejected_full_range_amplitude);
+    write_counts(
+        "Primary peak outside signal region",
+        cuts.rejected_primary_peak_outside_signal
+    );
+    write_counts(
+        "Significant additional peak outside signal region",
+        cuts.rejected_additional_peak_outside_signal
+    );
+  
+    write_counts("All cuts combined", cuts.rejected_combined);
+
+    output << "\nFinal selected waveforms: " << cuts.final_selection << '\n'
+           << "Note: individual rejection categories can overlap; therefore their "
+           << "rejected counts should not be summed.\n";
+
+    if (!output) {
+        throw std::runtime_error("Failed while writing cut summary: " + filename.string());
+    }
+    std::cout << "Saved " << filename << '\n';
+}
+
 
 double percentileFromSorted(const std::vector<float> &values, double quantile)
 {
@@ -453,6 +618,20 @@ Statistics calculateStatistics(const std::vector<WaveformRecord> &records)
             sum += values[row];
         }
         result.mean[sample] = sum / static_cast<float>(records.size());
+        double squared_difference = 0.0;
+        for (const double value : values) {
+            const double difference = value - result.mean[sample];
+            squared_difference += difference * difference;
+        }
+        if (records.size() > 1) {
+            const double sample_standard_deviation = std::sqrt(
+                squared_difference / static_cast<double>(records.size() - 1)
+            );
+            result.mean_uncertainty[sample] = sample_standard_deviation
+                / std::sqrt(static_cast<double>(records.size()));
+        } else {
+            result.mean_uncertainty[sample] = 0.0;
+        }
         std::sort(values.begin(), values.end());
         result.median[sample] = static_cast<float>(percentileFromSorted(values, 0.5));
         result.percentile_16[sample] = percentileFromSorted(values, 0.16);
@@ -466,79 +645,144 @@ void writeStatisticsCsv(const fs::path &filename, const Statistics &statistics)
     std::ofstream output(filename);
     if (!output) throw std::runtime_error("Could not create " + filename.string());
 
-    output << "sample,mean,median,percentile_16,percentile_84\n";
+    output << "sample,mean,mean_uncertainty,median,percentile_16,percentile_84\n";
     output << std::setprecision(std::numeric_limits<double>::max_digits10);
     for (std::size_t index = 0; index < statistics.samples.size(); ++index) {
         output << statistics.samples[index] << ','
                << statistics.mean[index] << ','
+               << statistics.mean_uncertainty[index] << ','
                << statistics.median[index] << ','
                << statistics.percentile_16[index] << ','
                << statistics.percentile_84[index] << '\n';
     }
 }
 
-void plotDensity(
+
+void plotAllWaveformsWithStatistics(
     unsigned int channel,
     const std::vector<WaveformRecord> &records,
+    const Statistics &statistics,
     const std::string &run,
     const std::string &label,
+    const std::string &selection_title,
+    const std::string &selection_suffix,
     const fs::path &output_dir
 )
 {
-    if (records.empty()) return;
-    std::size_t sample_count = 0;
-    short adc_min = std::numeric_limits<short>::max();
-    short adc_max = std::numeric_limits<short>::min();
-    for (const auto &record : records) {
-        if (record.adc.empty()) throw std::runtime_error("Channel contains an empty waveform");
-        sample_count = std::max(sample_count, record.adc.size());
-        const auto [minimum, maximum] = std::minmax_element(record.adc.begin(), record.adc.end());
-        adc_min = std::min(adc_min, *minimum);
-        adc_max = std::max(adc_max, *maximum);
-    }
+    if (records.empty() || statistics.samples.empty()) return;
 
-    const std::string suffix = std::to_string(channel) + "_" + label;
-    TH2I histogram(
-        ("density_" + suffix).c_str(),
-        ("Run " + run + " - Channel " + std::to_string(channel) + " (n="
-            + std::to_string(records.size()) + " waveforms)").c_str(),
-        static_cast<int>(sample_count), 0.0, static_cast<double>(sample_count),
-        static_cast<int>(adc_max - adc_min + 1),
-        static_cast<double>(adc_min) - 0.5,
-        static_cast<double>(adc_max) + 0.5
-    );
-    histogram.SetStats(false);
-    histogram.GetXaxis()->SetTitle("Sample Index");
-    histogram.GetYaxis()->SetTitle("ADC Value");
-    histogram.GetZaxis()->SetTitle("Counts (log scale)");
-    double filled_samples = 0.0;
+    double minimum = std::numeric_limits<double>::max();
+    double maximum = std::numeric_limits<double>::lowest();
     for (const auto &record : records) {
-        for (std::size_t sample = 0; sample < record.adc.size(); ++sample) {
-            histogram.AddBinContent(
-                histogram.GetBin(
-                    static_cast<int>(sample) + 1,
-                    static_cast<int>(record.adc[sample] - adc_min) + 1
-                )
-            );
-            ++filled_samples;
+        for (const short adc : record.adc) {
+            const double value = static_cast<double>(adc) - record.baseline;
+            minimum = std::min(minimum, value);
+            maximum = std::max(maximum, value);
         }
     }
-    // AddBinContent updates the bins directly but, unlike Fill, does not update
-    // the entry count. ROOT's COLZ painter skips a histogram with zero entries.
-    histogram.SetEntries(filled_samples);
+    if (minimum == maximum) {
+        minimum -= 0.5;
+        maximum += 0.5;
+    }
 
-    TCanvas canvas(("canvas_" + suffix).c_str(), "", 1800, 700);
-    canvas.SetLeftMargin(0.10);
+    const double y_range = maximum - minimum;
+    const int y_bins = std::max(
+        1,
+        std::min(MAX_WAVEFORM_DENSITY_Y_BINS, static_cast<int>(std::ceil(y_range)) + 1)
+    );
+    const int count = static_cast<int>(statistics.samples.size());
+    const std::string suffix = std::to_string(channel) + "_" + label
+        + "_" + selection_suffix;
+    TH2I density(
+        ("all_waveforms_" + suffix).c_str(),
+        ("Run " + run + " - " + selection_title + " - Channel "
+            + std::to_string(channel) + " - "
+            + std::to_string(records.size())
+            + " waveforms;Sample;ADC - baseline;Waveform samples").c_str(),
+        count,
+        -0.5,
+        static_cast<double>(count) - 0.5,
+        y_bins,
+        minimum - 0.5,
+        maximum + 0.5
+    );
+    density.SetStats(false);
+    for (const auto &record : records) {
+        for (std::size_t sample = 0; sample < record.adc.size(); ++sample) {
+            density.Fill(
+                static_cast<double>(sample),
+                static_cast<double>(record.adc[sample]) - record.baseline
+            );
+        }
+    }
+
+    std::vector<double> x(count), mean(count), median(count);
+    for (int index = 0; index < count; ++index) {
+        const auto sample = static_cast<std::size_t>(index);
+        x[index] = static_cast<double>(statistics.samples[sample]);
+        mean[index] = statistics.mean[sample];
+        median[index] = statistics.median[sample];
+    }
+
+    TGraph mean_graph(count, x.data(), mean.data());
+    TGraph median_graph(count, x.data(), median.data());
+
+    TCanvas canvas(("all_waveforms_canvas_" + suffix).c_str(), "", 1800, 850);
+    canvas.SetLeftMargin(0.09);
     canvas.SetRightMargin(0.13);
-    canvas.SetBottomMargin(0.12);
+    canvas.SetBottomMargin(0.11);
     canvas.SetTopMargin(0.10);
     canvas.SetLogz();
-    histogram.SetMinimum(1.0);
-    histogram.Draw("COLZ");
-    const fs::path output = output_dir / ("channel_" + suffix + ".pdf");
+    canvas.SetGrid();
+    density.SetMinimum(1.0);
+    density.Draw("COLZ");
+
+    median_graph.SetLineColor(kBlue + 1);
+    median_graph.SetLineWidth(3);
+    median_graph.Draw("L SAME");
+    mean_graph.SetLineColor(kBlack);
+    mean_graph.SetLineStyle(2);
+    mean_graph.SetLineWidth(3);
+    mean_graph.Draw("L SAME");
+
+    TLegend legend(0.68, 0.76, 0.86, 0.89);
+    legend.SetFillColorAlpha(kWhite, 0.88);
+    legend.AddEntry(&median_graph, "Median", "l");
+    legend.AddEntry(&mean_graph, "Mean", "l");
+    legend.Draw();
+
+    const fs::path output = output_dir / ("all_waveforms_" + suffix + ".png");
     canvas.SaveAs(output.string().c_str());
     std::cout << "Saved " << output << '\n';
 }
+
+void plotAllWaveformsForSelection(
+    const std::set<unsigned int> &channels,
+    const RecordsByChannel &records_by_channel,
+    const std::string &run,
+    const std::string &label,
+    const std::string &selection_title,
+    const std::string &selection_suffix,
+    const fs::path &output_dir
+)
+{
+    for (const unsigned int channel : channels) {
+        const auto found = records_by_channel.find(channel);
+        if (found == records_by_channel.end() || found->second.empty()) continue;
+        const Statistics statistics = calculateStatistics(found->second);
+        plotAllWaveformsWithStatistics(
+            channel,
+            found->second,
+            statistics,
+            run,
+            label,
+            selection_title,
+            selection_suffix,
+            output_dir
+        );
+    }
+}
+
 
 void plotAndSaveStatistics(
     const std::set<unsigned int> &channels,
@@ -596,7 +840,8 @@ void plotAndSaveStatistics(
         const auto &statistics = all_statistics.back();
         const auto count = static_cast<int>(statistics.samples.size());
 
-        std::vector<double> x(count), mean(count), median(count), lower(count), upper(count), zero(count);
+        std::vector<double> x(count), mean(count), median(count);
+        std::vector<double> lower(count), upper(count), zero(count);
         for (int index = 0; index < count; ++index) {
             x[index] = statistics.samples[static_cast<std::size_t>(index)];
             mean[index] = statistics.mean[static_cast<std::size_t>(index)];
@@ -637,7 +882,7 @@ void plotAndSaveStatistics(
         zero_lines.emplace_back(0.0, 0.0, static_cast<double>(count - 1), 0.0);
         zero_lines.back().SetLineColor(kGray + 2);
         zero_lines.back().Draw("SAME");
-        legends.emplace_back(0.72, 0.76, 0.93, 0.92);
+        legends.emplace_back(0.66, 0.72, 0.93, 0.92);
         legends.back().AddEntry(&band, "16-84%", "f");
         legends.back().AddEntry(&medians.back(), "Median", "l");
         legends.back().AddEntry(&means.back(), "Mean", "l");
@@ -647,6 +892,16 @@ void plotAndSaveStatistics(
             / ("channel_" + std::to_string(channel) + "_" + label + ".csv");
         writeStatisticsCsv(csv_file, statistics);
         std::cout << "Saved " << csv_file << '\n';
+        plotAllWaveformsWithStatistics(
+            channel,
+            records,
+            statistics,
+            run,
+            label,
+            "Final Selection",
+            "final_selection",
+            output_dir
+        );
     }
 
     const fs::path output_stem = output_dir / ("mean_median_waveforms_" + label);
@@ -693,19 +948,49 @@ void processInputList(
     const auto located = locateSelectedEntries(*chain, selected);
     std::cout << "Located ROOT entries: " << located.size() << '\n';
     const WaveformAnalyzer analyzer(options.config.string());
-    const auto records = loadWaveforms(
+    const auto selections = loadWaveforms(
         *chain, located, analyzer, options.max_auxiliary_amplitude
     );
-    const std::string label = "run_" + run + "_"
-        + options.csv_suffix.substr(0, options.csv_suffix.size() - 4);
+       const std::string label = options.csv_file.empty()
+        ? "run_" + run + "_"
+            + options.csv_suffix.substr(0, options.csv_suffix.size() - 4)
+        : csv_file.stem().string();
+    const fs::path cut_summary = options.output_dir
+        / ("selection_cuts_" + label + ".txt");
+    
+        writeCutSummary(
+        cut_summary,
+        run,
+        input_list,
+        csv_file,
+        options.config,
+        channels,
+        selected_rows,
+        located.size(),
+        options.max_auxiliary_amplitude,
+        analyzer,
+        selections.cuts,
+        selections.final_selection
+    );
 
-    for (const auto channel : channels) {
-        const auto found = records.find(channel);
-        if (found != records.end()) {
-            plotDensity(channel, found->second, run, label, options.output_dir);
-        }
-    }
-    plotAndSaveStatistics(channels, records, run, label, options.output_dir);
+    plotAllWaveformsForSelection(
+        channels,
+        selections.from_coincidence,
+        run,
+        label,
+        "From Coincidence",
+        "from_coincidence",
+        options.output_dir
+    );
+    plotAndSaveStatistics(
+        channels,
+        selections.final_selection,
+        run,
+        label,
+        options.output_dir
+    );
+
+
 }
 
 }  // namespace

@@ -20,3 +20,6 @@
 
 #Python Envinroments
 analysis/.venv/
+
+# ignore ml
+ml-selection-lucca/
