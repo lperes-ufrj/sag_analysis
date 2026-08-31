@@ -4,24 +4,10 @@ set -uo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd)
-INPUT_DIR="$REPO_DIR/input_lists"
+INPUT_DIR="$SCRIPT_DIR/input_lists"
 EXECUTABLE="$REPO_DIR/bin/plot_wfs_coincidence"
 MAX_AUXILIARY_AMPLITUDE="500"
 
-if (($# != 1)); then
-    echo "Usage: $0 ANALYSIS_TIMESTAMP" >&2
-    echo "Example: $0 20260828_132850" >&2
-    exit 2
-fi
-
-ANALYSIS_TIMESTAMP=$1
-ANALYSIS_DIR="$SCRIPT_DIR/$ANALYSIS_TIMESTAMP"
-OUTPUT_DIR="$SCRIPT_DIR/selected_waveforms/$ANALYSIS_TIMESTAMP"
-
-if [[ ! -d $ANALYSIS_DIR ]]; then
-    echo "Error: analysis directory not found: $ANALYSIS_DIR" >&2
-    exit 1
-fi
 
 # Compile only when the executable is missing or its sources changed.
 make -C "$SCRIPT_DIR" plot_wfs_coincidence || exit 1
@@ -32,15 +18,17 @@ if command -v root-config >/dev/null 2>&1; then
     export LD_LIBRARY_PATH="$ROOT_LIBRARY_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 fi
 
+OUTPUT_DIR="$SCRIPT_DIR/selected_waveforms"
+
 mkdir -p "$OUTPUT_DIR"
 
 shopt -s nullglob
 selection_csvs=(
-    "$ANALYSIS_DIR"/waveforms_run_*.csv
+    "$SCRIPT_DIR"/waveforms_run_*.csv
 )
 
 if ((${#selection_csvs[@]} == 0)); then
-    echo "Error: no timestamped selection CSVs found in $ANALYSIS_DIR" >&2
+    echo "Error: no waveforms_run_*.csv files found in $SCRIPT_DIR" >&2
     exit 1
 fi
 
@@ -52,8 +40,7 @@ for index in "${!selection_csvs[@]}"; do
     selection_csv=${selection_csvs[$index]}
     filename=${selection_csv##*/}
 
-    if [[ $filename =~ ^coincidence_scan_run_([0-9]{6})_(.+)\.csv$ ]] \
-        && [[ ${BASH_REMATCH[2]} == "$ANALYSIS_TIMESTAMP" ]]; then
+    if [[ $filename =~ ^waveforms_run_([0-9]{6})_.+\.csv$ ]]; then
         run=${BASH_REMATCH[1]}
     else
         echo "Skipping unrecognized selection CSV: $filename" >&2
@@ -79,7 +66,6 @@ for index in "${!selection_csvs[@]}"; do
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --output-dir "$OUTPUT_DIR" \
         --csv "$selection_csv" \
-        --max-peaks-signal-region 3 \
         --max-auxiliary-amplitude "$MAX_AUXILIARY_AMPLITUDE" \
         "$input_file"; then
         successful_runs+=("$run")

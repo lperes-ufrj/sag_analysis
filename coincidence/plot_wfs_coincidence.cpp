@@ -171,6 +171,7 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
             std::exit(0);
         }
         if (argument == "--config" || argument == "--output-dir"
+            || argument == "--csv"
             || argument == "--csv-suffix"
             || argument == "--max-auxiliary-amplitude") {
             if (++index >= argc) throw std::runtime_error("Missing value for " + argument);
@@ -199,6 +200,9 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
                 ? command_line_path
                 : program_relative_path;
         }
+    }
+    if (!options.csv_file.empty()) {
+    options.csv_file = fs::absolute(options.csv_file);
     }
     options.config = fs::absolute(options.config);
     options.output_dir = fs::absolute(options.output_dir);
@@ -922,11 +926,25 @@ void processInputList(
     }
     const std::string run = inferRun(input_list);
     const std::string csv_name = "waveforms_run_" + run + "_" + options.csv_suffix;
-    fs::path csv_file = input_list.parent_path() / csv_name;
-    if (!fs::is_regular_file(csv_file)) csv_file = program_dir / csv_name;
-
+    
+    fs::path csv_file;
+    
+    if (!options.csv_file.empty()) {
+        csv_file = options.csv_file;
+    } else {
+        const std::string csv_name =
+            "waveforms_run_" + run + "_" + options.csv_suffix;
+    
+        csv_file = input_list.parent_path() / csv_name;
+        if (!fs::is_regular_file(csv_file)) {
+            csv_file = program_dir / csv_name;
+        }
+    }
+    
     if (!fs::is_regular_file(csv_file)) {
-        throw std::runtime_error("Selection CSV not found: " + csv_file.string());
+        throw std::runtime_error(
+            "Selection CSV not found: " + csv_file.string()
+        );
     }
 
     std::cout << "\nProcessing run " << run << '\n';
