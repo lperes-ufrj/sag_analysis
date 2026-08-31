@@ -10,7 +10,7 @@ if (($# > 1)); then
 fi
 
 #analysis_timestamp=${1:-$(date +%Y%m%d_%H%M%S)}
-analysis_timestamp=20260829_094702
+analysis_timestamp=20260828_195902
 echo "Starting full coincidence pipeline"
 echo "Analysis timestamp: $analysis_timestamp"
 

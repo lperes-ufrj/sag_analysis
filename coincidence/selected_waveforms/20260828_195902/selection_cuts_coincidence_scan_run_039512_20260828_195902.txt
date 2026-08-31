@@ -10,12 +10,12 @@ Waveforms entering selection, including CSV multiplicity: 114717
 
 Applied cuts
 ------------
-1. Noise-region maximum absolute |ADC - baseline| <= 1000 ADC
-2. Post-signal maximum absolute |ADC - baseline| <= 1000 ADC
+1. Noise-region maximum absolute |ADC - baseline| <= 500 ADC
+2. Post-signal maximum absolute |ADC - baseline| <= 500 ADC
 3. Full-waveform positive amplitude above baseline <= 9000 ADC
 4. Primary peak must be inside the configured signal region
 5. No significant additional peak may be outside the signal region
-6. The signal region must contain exactly one peak candidate
+6. The signal region may contain at most 3 peak candidate(s)
 7. A primary peak must be found
 
 Peak-finder configuration
@@ -35,23 +35,23 @@ Channel 2081: noise=[0, 50), signal=[50, 180), post_signal=[500, 1023)
 Final-selection baseline noise
 ------------------------------
 Definition: sample standard deviation of all baseline-subtracted ADC values pooled from ticks [0, 50) of the final-selection waveforms.
-Channel 2070: 8.0129 ADC (waveforms=6453, baseline samples=322650)
-Channel 2071: 8.94421 ADC (waveforms=6923, baseline samples=346150)
-Channel 2080: 11.7278 ADC (waveforms=29100, baseline samples=1455000)
-Channel 2081: 12.016 ADC (waveforms=29612, baseline samples=1480600)
+Channel 2070: 6.45812 ADC (waveforms=13164, baseline samples=658200)
+Channel 2071: 6.28888 ADC (waveforms=12924, baseline samples=646200)
+Channel 2080: 8.52403 ADC (waveforms=38583, baseline samples=1929150)
+Channel 2081: 8.67809 ADC (waveforms=38073, baseline samples=1903650)
 
 Cut results
 -----------
 Criterion                                                         Accepted    Rejected
 --------------------------------------------------------------------------------------
-Noise-region amplitude                                              114710           7
-Post-signal amplitude                                               111869        2848
+Noise-region amplitude                                              114667          50
+Post-signal amplitude                                               109904        4813
 Full-range amplitude                                                114062         655
 Primary peak outside signal region                                  111581        3136
 Significant additional peak outside signal region                   107167        7550
-Signal-region peak count != 1                                        79196       35521
+Signal-region peak count > 3                                        113780         937
 No primary peak found                                               114706          11
-All cuts combined                                                    72088       42629
+All cuts combined                                                   102744       11973
 
-Final selected waveforms: 72088
+Final selected waveforms: 102744
 Note: individual rejection categories can overlap; therefore their rejected counts should not be summed.
