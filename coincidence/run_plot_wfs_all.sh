@@ -24,7 +24,7 @@ mkdir -p "$OUTPUT_DIR"
 
 shopt -s nullglob
 selection_csvs=(
-    "$SCRIPT_DIR"/waveforms_run_*.csv
+    "$SCRIPT_DIR"/waveforms_run_*_coinc_2030*.csv
 )
 
 if ((${#selection_csvs[@]} == 0)); then

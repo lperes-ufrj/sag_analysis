@@ -13,8 +13,8 @@
 namespace {
 
 constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
-constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
-constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
+constexpr double MINIMUM_PEAK_HEIGHT_ADC = 1000.0;
+constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 100.0;
 
 struct PeakCandidate {
     int tick = -1;
