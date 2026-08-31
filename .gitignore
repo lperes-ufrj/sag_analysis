@@ -13,6 +13,7 @@
 !plots/
 !plots/**/*.pdf
 !plots/**/*.png
+!coincidence/*.csv
 
 
 # Compiled binaries
