@@ -15,7 +15,7 @@
 !plots/**/*.png
 !coincidence/*.csv
 !jobs_justin/decoder_selection_jobs/*.sh
-
+!coincidence/selected_waveforms/channel_208*.csv
 
 # Compiled binaries
 /bin/
