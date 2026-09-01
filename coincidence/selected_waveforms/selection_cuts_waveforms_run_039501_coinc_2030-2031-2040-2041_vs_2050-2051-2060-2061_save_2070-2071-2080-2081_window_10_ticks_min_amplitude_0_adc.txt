@@ -10,8 +10,9 @@ Waveforms entering selection, including CSV multiplicity: 87284
 
 Applied cuts
 ------------
-1. Noise-region maximum absolute  <= 500 ADC
-2. Post-signal maximum absolute  <= 500 ADC
+Compatibility: coin_1p0v_code selection criteria and boundaries
+1. Noise-region maximum ADC minus noise median <= 500 ADC
+2. Post-signal maximum ADC minus noise median <= 500 ADC
 3. Full-waveform positive amplitude above baseline <= 9000 ADC
 4. Primary peak must be inside the configured signal region
 5. No significant additional peak may be outside the signal region

@@ -72,10 +72,12 @@ list_templates_charge = {
 
 csv_files_0_adc = sorted(
     path_waveforms.glob(
-        "channel_*_run_*coinc_2010*min_amplitude_0_adc.csv"
+        "channel_*_run_*coinc_2030*min_amplitude_0_adc.csv"
     )
     
 )
+
+CHANNELS_TO_PLOT = {2080,2081}
 
 print(f"Found {len(csv_files_0_adc)} CSV files.")
 
@@ -116,6 +118,17 @@ run_to_efield = {
     39506: 0.171429,
     39507: 0.114286,
     39508: 0.057143,
+
+    # Higher HV scan
+    43380: 0.685,
+    43381: 0.685,
+    43383: 0.586,
+    43384: 0.586,
+    43386: 0.771,
+    43387: 0.771,
+    43389: 0.44,
+    43390: 0.44,
+
 }
 
 
@@ -219,6 +232,7 @@ def parse_filename(csv_file):
     channel = int(match.group(1))
     run = int(match.group(2))
 
+
     return channel, run
 
 
@@ -239,6 +253,9 @@ print("========================================")
 for csv_file in csv_files_0_adc:
 
     channel, run = parse_filename(csv_file)
+
+    if channel not in CHANNELS_TO_PLOT:
+        continue
 
     if channel is None:
         print(f"Could not parse filename:")
@@ -306,6 +323,9 @@ print("========================================")
 for csv_file in csv_files_0_adc:
 
     channel, run = parse_filename(csv_file)
+
+    if channel not in CHANNELS_TO_PLOT:
+        continue
 
     if channel is None:
         continue
@@ -501,10 +521,7 @@ relative_s1_previous = np.array([
 
 # Previous study contains the same first E-fields
 # plus one additional point at 0.556 kV/cm.
-efield_previous = np.append(
-    efields,
-    0.556,
-)
+efield_previous = [0., 0.028571, 0.057143, 0.085714, 0.114286, 0.142857, 0.171429, 0.2, 0.228571, 0.257143, 0.285714, 0.314286, 0.342857, 0.371429, 0.4, 0.428571, 0.444857,0.556]
 
 
 # ============================================================
@@ -580,7 +597,7 @@ plt.scatter(
     means,
     marker="*",
     s=100,
-    label="Mean all channels and runs",
+    label=rf"Mean: {CHANNELS_TO_PLOT}",
 )
 
 
