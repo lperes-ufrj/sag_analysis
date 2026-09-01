@@ -72,7 +72,7 @@ list_templates_charge = {
 
 csv_files_0_adc = sorted(
     path_waveforms.glob(
-        "channel_*_run_*coinc_2030-2031-2040-2041*min_amplitude_0_adc.csv"
+        "channel_*_run_*coinc_2010*min_amplitude_0_adc.csv"
     )
     
 )

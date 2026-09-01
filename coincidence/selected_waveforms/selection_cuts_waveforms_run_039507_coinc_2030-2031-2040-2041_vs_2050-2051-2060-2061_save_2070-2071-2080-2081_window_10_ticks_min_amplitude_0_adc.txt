@@ -24,10 +24,10 @@ Channel 2081: noise=[0, 50), signal=[50, 110), post_signal=[500, 1023)
 Final-selection baseline noise
 ------------------------------
 Definition: sample standard deviation of all baseline-subtracted ADC values pooled from ticks [0, 50) of the final-selection waveforms.
-Channel 2070: 7.39421 ADC (waveforms=14567, baseline samples=728350)
-Channel 2071: 6.99328 ADC (waveforms=14057, baseline samples=702850)
-Channel 2080: 12.7439 ADC (waveforms=39291, baseline samples=1964550)
-Channel 2081: 9.27469 ADC (waveforms=38731, baseline samples=1936550)
+Channel 2070: 13.8027 ADC (waveforms=3003, baseline samples=150150)
+Channel 2071: 12.406 ADC (waveforms=3148, baseline samples=157400)
+Channel 2080: 24.4315 ADC (waveforms=9268, baseline samples=463400)
+Channel 2081: 15.0482 ADC (waveforms=11559, baseline samples=577950)
 
 Cut results
 -----------
@@ -36,9 +36,9 @@ Criterion                                                         Accepted    Re
 Noise-region amplitude                                              116227          48
 Post-signal amplitude                                               112159        4116
 Full-range amplitude                                                115698         577
-Primary peak outside signal region                                  112633        3642
-Significant additional peak outside signal region                   111777        4498
-All cuts combined                                                   106646        9629
+Primary peak outside signal region                                  110963        5312
+Significant additional peak outside signal region                    32378       83897
+All cuts combined                                                    26978       89297
 
-Final selected waveforms: 106646
+Final selected waveforms: 26978
 Note: individual rejection categories can overlap; therefore their rejected counts should not be summed.
