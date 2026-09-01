@@ -104,6 +104,24 @@ struct WaveformSelections {
     RecordsByChannel final_selection;
     CutStatistics cuts;
 };
+
+// Compatibility contract: these are exactly the five rejection flags used by
+// coin_1p0v_code/plot_wfs_coincidence.cpp.  Plotting and reporting additions
+// must consume this decision; they must not add acceptance criteria of their own.
+struct Coin1p0vSelectionDecision {
+    bool fails_noise = false;
+    bool fails_post_signal = false;
+    bool fails_full_range_amplitude = false;
+    bool fails_primary_peak = false;
+    bool fails_additional_peak = false;
+
+    bool rejected() const
+    {
+        return fails_noise || fails_post_signal || fails_full_range_amplitude
+            || fails_primary_peak || fails_additional_peak;
+    }
+};
+
 struct Statistics {
     std::vector<std::int64_t> samples;
     std::vector<double> mean;
@@ -365,6 +383,40 @@ double fullRangeAmplitude(const std::vector<short> &adc, double baseline)
     return static_cast<double>(*std::max_element(adc.begin(), adc.end())) - baseline;
 }
 
+Coin1p0vSelectionDecision evaluateCoin1p0vSelection(
+    const std::vector<short> &adc,
+    unsigned int channel,
+    double baseline,
+    const WaveformAnalyzer &analyzer,
+    double max_auxiliary_amplitude
+)
+{
+    // Keep these calculations and strict boundaries synchronized with the old
+    // coin_1p0v_code selection.  In particular, these are positive maxima
+    // above the noise median (not absolute excursions), and equality passes.
+    const double noise_amplitude = maximumInRegion(
+        adc, analyzer, channel, "noise"
+    ) - baseline;
+    const double post_signal_amplitude = maximumInRegion(
+        adc, analyzer, channel, "post_signal"
+    ) - baseline;
+    const bool fails_noise = noise_amplitude > max_auxiliary_amplitude;
+    const bool fails_post_signal = post_signal_amplitude > max_auxiliary_amplitude;
+    const double amplitude = fullRangeAmplitude(adc, baseline);
+    const bool fails_full_range_amplitude = amplitude > MAX_FULL_RANGE_AMPLITUDE;
+    const PeakSearchResult peak = analyzer.findPeak(adc, channel);
+    const bool fails_primary_peak = peak.primary_outside_signal_region;
+    const bool fails_additional_peak = peak.additional_outside_signal_region;
+
+    return {
+        fails_noise,
+        fails_post_signal,
+        fails_full_range_amplitude,
+        fails_primary_peak,
+        fails_additional_peak
+    };
+}
+
 WaveformSelections loadWaveforms(
     TChain &chain,
     const std::vector<LocatedWaveform> &located,
@@ -395,31 +447,26 @@ WaveformSelections loadWaveforms(
         for (std::size_t copy = 0; copy < item.multiplicity; ++copy) {
             selections.from_coincidence[item.key.channel].push_back({baseline, *adc});
         }
-        const double noise_amplitude = maximumInRegion(
-            *adc, analyzer, item.key.channel, "noise"
-        ) - baseline;
-        const double post_signal_amplitude = maximumInRegion(
-            *adc, analyzer, item.key.channel, "post_signal"
-        ) - baseline;
-        const bool fails_noise = noise_amplitude > max_auxiliary_amplitude;
-        const bool fails_post_signal = post_signal_amplitude > max_auxiliary_amplitude;
-        const double amplitude = fullRangeAmplitude(*adc, baseline);
-        const bool fails_full_range_amplitude = amplitude > MAX_FULL_RANGE_AMPLITUDE;
-        const PeakSearchResult peak = analyzer.findPeak(*adc, item.key.channel);
-        const bool fails_primary_peak = peak.primary_outside_signal_region;
-        const bool fails_additional_peak = peak.additional_outside_signal_region;
+        const Coin1p0vSelectionDecision decision = evaluateCoin1p0vSelection(
+            *adc,
+            item.key.channel,
+            baseline,
+            analyzer,
+            max_auxiliary_amplitude
+        );
 
-        rejected_noise += item.multiplicity * static_cast<std::size_t>(fails_noise);
-        rejected_post_signal += item.multiplicity * static_cast<std::size_t>(fails_post_signal);
+        rejected_noise += item.multiplicity
+            * static_cast<std::size_t>(decision.fails_noise);
+        rejected_post_signal += item.multiplicity
+            * static_cast<std::size_t>(decision.fails_post_signal);
         rejected_full_range_amplitude += item.multiplicity
-            * static_cast<std::size_t>(fails_full_range_amplitude);
+            * static_cast<std::size_t>(decision.fails_full_range_amplitude);
         rejected_primary_peak_outside_signal += item.multiplicity
-            * static_cast<std::size_t>(fails_primary_peak);
+            * static_cast<std::size_t>(decision.fails_primary_peak);
         rejected_additional_peak_outside_signal += item.multiplicity
-            * static_cast<std::size_t>(fails_additional_peak);
+            * static_cast<std::size_t>(decision.fails_additional_peak);
         total += item.multiplicity;
-        if (fails_noise || fails_post_signal || fails_full_range_amplitude
-            || fails_primary_peak || fails_additional_peak) {
+        if (decision.rejected()) {
             rejected_total += item.multiplicity;
             continue;
         }
@@ -488,9 +535,10 @@ void writeCutSummary(
            << cuts.from_coincidence << "\n\n"
            << "Applied cuts\n"
            << "------------\n"
-           << "1. Noise-region maximum absolute  <= "
+           << "Compatibility: coin_1p0v_code selection criteria and boundaries\n"
+           << "1. Noise-region maximum ADC minus noise median <= "
            << max_auxiliary_amplitude << " ADC\n"
-           << "2. Post-signal maximum absolute  <= "
+           << "2. Post-signal maximum ADC minus noise median <= "
            << max_auxiliary_amplitude << " ADC\n"
            << "3. Full-waveform positive amplitude above baseline <= "
            << MAX_FULL_RANGE_AMPLITUDE << " ADC\n"
