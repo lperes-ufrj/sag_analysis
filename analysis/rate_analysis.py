@@ -504,12 +504,23 @@ def main() -> None:
         )
         target_source = "command_line"
 
-    invalid_targets = channels_array[~np.isfinite(target_frequency_khz)]
+    valid_target_mask = np.isfinite(target_frequency_khz)
+    invalid_targets = channels_array[~valid_target_mask]
     if invalid_targets.size:
-        raise RuntimeError(
+        print(
             "No finite reference frequency is available for channels: "
-            f"{invalid_targets.tolist()}"
+            f"{invalid_targets.tolist()}. Skipping these channels."
         )
+
+        all_channels = channels_array[valid_target_mask].tolist()
+        channels_array = channels_array[valid_target_mask]
+        live_time_array = live_time_array[valid_target_mask]
+        histogram_before_counts = histogram_before_counts[valid_target_mask]
+        histogram_before_rate_hz = histogram_before_rate_hz[valid_target_mask]
+        frequency_before_khz = frequency_before_khz[valid_target_mask]
+        target_frequency_khz = target_frequency_khz[valid_target_mask]
+        common_output["channels"] = channels_array
+        common_output["live_time_s"] = live_time_array
 
     thresholds_adc = np.full(len(all_channels), np.nan, dtype=np.float64)
     frequency_after_khz = np.full(len(all_channels), np.nan, dtype=np.float64)
