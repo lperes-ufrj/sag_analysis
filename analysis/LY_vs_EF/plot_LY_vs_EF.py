@@ -77,7 +77,7 @@ csv_files_0_adc = sorted(
     
 )
 
-CHANNELS_TO_PLOT = {2080,2081}
+CHANNELS_TO_PLOT = {2070,2071}
 
 print(f"Found {len(csv_files_0_adc)} CSV files.")
 
@@ -108,6 +108,7 @@ run_to_efield = {
     39527: 0.400000,
     39528: 0.428571,
     39529: 0.444857,
+   # 39787: 0.5, bad
 
     # Decreasing HV scan
     39500: 0.444857,

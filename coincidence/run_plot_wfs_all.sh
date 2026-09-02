@@ -83,3 +83,10 @@ echo "Failed runs     (${#failed_runs[@]}): ${failed_runs[*]:-none}"
 if ((${#failed_runs[@]} > 0)); then
     exit 1
 fi
+
+./bin/plot_wfs_coincidence \
+  --config coincidence/waveform_intervals.ini \
+  --output-dir coincidence/selected_waveforms \
+  --csv coincidence/waveforms_run_039787_coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_save_2070-2071-2080-2081_window_10_ticks_min_amplitude_0_adc.csv \
+  --max-auxiliary-amplitude 500 \
+  coincidence/input_lists/input_run039787.txt
