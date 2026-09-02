@@ -1,14 +1,14 @@
 #!/bin/bash
 
 RUNS=(
-"39787 175kV"
+"40930 175kV"
 )
 
 for entry in "${RUNS[@]}"; do
 read -r RUN FIELD <<< "${entry}"
 
 echo "=============================================="
-echo "Submitting electric-field ramp run ${RUN}"
+echo "Submitting electric-field ${RUN}"
 echo "High voltage: ${FIELD}"
 echo "=============================================="
 
