@@ -111,7 +111,7 @@ def read_waveform_timestamps_amplitude(
     chain: ROOT.TChain,
     channels: tuple[int, ...],
 ) -> dict[int, dict[str, np.ndarray]]:
-    """Calculate baseline-to-peak amplitude over samples 50:1023 in ROOT."""
+    """Calculate baseline-to-peak amplitude over samples 50:180 in ROOT."""
     if not channels:
         return {}
 
@@ -250,7 +250,9 @@ def save_threshold_table(
     np.savetxt(
         output,
         table,
-        fmt=("%d", "%.4g", "%.4g"),
+        # Preserve enough precision for C++ to reproduce the exact inclusive
+        # amplitude-threshold decision made from the unbinned spectrum here.
+        fmt=("%d", "%.17g", "%.17g"),
         delimiter="\t",
         header="channel\ttarget_frequency_khz\tthreshold_adc",
         comments="",
@@ -261,7 +263,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Calculate per-channel baseline-to-peak amplitude spectra over "
-            "waveform samples 50:1023 and save them as compressed NumPy files; "
+            "waveform samples 50:180 and save them as compressed NumPy files; "
             "equalized runs also save a text threshold table."
         )
     )
