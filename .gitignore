@@ -13,6 +13,7 @@
 !plots/
 !plots/**/*.pdf
 !plots/**/*.png
+!coincidence/*/*/*.csv
 !coincidence/*.csv
 !jobs_justin/decoder_selection_jobs/*.sh
 !coincidence/selected_waveforms/channel_20*.csv

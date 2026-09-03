@@ -1,7 +1,7 @@
 #!/bin/bash
 
 RUNS=(
-"40930 175kV"
+"40931 174p7kV"
 )
 
 for entry in "${RUNS[@]}"; do
