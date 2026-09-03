@@ -209,10 +209,16 @@ Arguments parseArguments(int argc, char **argv)
 
     if (args.input_list.empty()) throw std::runtime_error("Missing input list");
     if (args.run.empty()) throw std::runtime_error("Missing required option --run");
+    if (args.run.size() != 6
+        || !std::all_of(args.run.begin(), args.run.end(), [](unsigned char value) {
+            return std::isdigit(value);
+        })) {
+        throw std::runtime_error("--run must contain exactly six digits");
+    }
     if (args.output_dir.empty()) throw std::runtime_error("--output-dir cannot be empty");
     if (args.window_ticks < 0) throw std::runtime_error("--window-ticks cannot be negative");
-    if (args.min_amplitude_adc < 0.0) {
-        throw std::runtime_error("--min-amplitude-adc cannot be negative");
+    if (!std::isfinite(args.min_amplitude_adc) || args.min_amplitude_adc < 0.0) {
+        throw std::runtime_error("--min-amplitude-adc must be finite and nonnegative");
     }
     if (!args.timestamp.empty()
         && !std::all_of(args.timestamp.begin(), args.timestamp.end(), [](unsigned char value) {
