@@ -16,7 +16,7 @@ fi
 
 # Generate this identifier once so every run in the batch is written into the
 # same directory and appended to the same summary file. Supplying it as the
-# optional argument makes a batch reproducible or resumable.
+# optional argument lets related pipeline stages use the same identifier.
 ANALYSIS_TIMESTAMP=${1:-$(date +%Y%m%d_%H%M%S)}
 ANALYSIS_DIR="$OUTPUT_ROOT/$ANALYSIS_TIMESTAMP"
 
@@ -30,6 +30,8 @@ if ((${#threshold_files[@]} == 0)); then
 fi
 
 processed_runs=0
+reference_runs=0
+skipped_runs=()
 for threshold_file in "${threshold_files[@]}"; do
     threshold_name=${threshold_file##*/}
     if [[ ! $threshold_name =~ ^equalized_run_([0-9]{6})_thresholds\.txt$ ]]; then
@@ -39,8 +41,9 @@ for threshold_file in "${threshold_files[@]}"; do
     run=${BASH_REMATCH[1]}
     input_file="$INPUT_DIR/input_run${run}.txt"
     if [[ ! -f $input_file ]]; then
-        echo "Missing input list for run $run: $input_file" >&2
-        exit 1
+        echo "Skipping run $run: missing input list $input_file" >&2
+        skipped_runs+=("$run")
+        continue
     fi
 
     echo "========================================"
@@ -66,13 +69,59 @@ for threshold_file in "${threshold_files[@]}"; do
     ((processed_runs += 1))
 done
 
+# A reference sample defines the target rates and therefore has no equalized
+# threshold table. Process each reference NPZ's run once without a rate cut.
+reference_files=("$THRESHOLD_DIR"/reference_run_*.npz)
+for reference_file in "${reference_files[@]}"; do
+    reference_name=${reference_file##*/}
+    if [[ ! $reference_name =~ ^reference_run_([0-9]{6})\.npz$ ]]; then
+        continue
+    fi
+
+    run=${BASH_REMATCH[1]}
+    if [[ -f "$THRESHOLD_DIR/equalized_run_${run}_thresholds.txt" ]]; then
+        continue
+    fi
+
+    input_file="$INPUT_DIR/input_run${run}.txt"
+    if [[ ! -f $input_file ]]; then
+        echo "Skipping reference run $run: missing input list $input_file" >&2
+        skipped_runs+=("$run")
+        continue
+    fi
+
+    echo "========================================"
+    echo "Running unthresholded reference analysis for run $run"
+    echo "Input: $input_file"
+    echo "Reference data: $reference_file"
+    echo "Analysis timestamp: $ANALYSIS_TIMESTAMP"
+    echo "Analysis directory: $ANALYSIS_DIR"
+    echo "========================================"
+
+    "$EXECUTABLE" "$input_file" \
+        --run "$run" \
+        --timestamp "$ANALYSIS_TIMESTAMP" \
+        --output-dir "$OUTPUT_ROOT" \
+        --config "$SCRIPT_DIR/waveform_intervals.ini" \
+        --channels-coincident-left 2030 2031 2040 2041 \
+        --channels-coincident-right 2050 2051 2060 2061 \
+        --channels-to-save 2070 2071 2080 2081 \
+        --window-ticks 10 \
+        --min-amplitude-adc 0
+
+    ((processed_runs += 1))
+    ((reference_runs += 1))
+done
+
 if ((processed_runs == 0)); then
-    echo "No threshold filenames matched equalized_run_RUN_thresholds.txt" >&2
+    echo "No runnable equalized or reference samples were found" >&2
     exit 1
 fi
 
 echo
 echo "Coincidence analysis complete"
 echo "Processed runs: $processed_runs"
+echo "Unthresholded reference runs: $reference_runs"
+echo "Skipped runs: ${skipped_runs[*]:-none}"
 echo "Analysis timestamp: $ANALYSIS_TIMESTAMP"
 echo "Saved outputs: $ANALYSIS_DIR"

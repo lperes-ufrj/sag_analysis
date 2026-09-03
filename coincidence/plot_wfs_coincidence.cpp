@@ -36,18 +36,18 @@ namespace {
 constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
 constexpr double MAX_FULL_RANGE_AMPLITUDE = 9000.0;
 constexpr int MAX_WAVEFORM_DENSITY_Y_BINS = 2000;
-const std::array<std::string, 3> DEFAULT_RUNS{"039510", "039511", "039512"};
-const std::string DEFAULT_CSV_SUFFIX =
-    "coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_"
-    "save_2070-2071-2080-2081_window_10_ticks_min_amplitude_0_adc.csv";
 
 struct Options {
-    std::vector<fs::path> input_lists;
+    fs::path input_list;
     fs::path config;
     fs::path output_dir;
     fs::path csv_file;
-    std::string csv_suffix = DEFAULT_CSV_SUFFIX;
     double max_auxiliary_amplitude = DEFAULT_MAX_AUXILIARY_AMPLITUDE;
+};
+
+struct CoincidenceOutputIdentity {
+    std::string run;
+    std::string timestamp;
 };
 
 struct WaveformKey {
@@ -162,16 +162,16 @@ std::string normalizeRun(std::string run)
 void printUsage(const char *program)
 {
     std::cout
-        << "Usage: " << program << " [options] [INPUT_LIST.txt ...]\n\n"
-        << "Process selected coincidence waveforms and create the same data products\n"
-        << "as plot_wfs_coincidence.ipynb. The run number is inferred from each input\n"
-        << "list filename or its ROOT filenames. With no input lists, processes the\n"
-        << "default lists for runs 039510, 039511, and 039512.\n\n"
+        << "Usage: " << program
+        << " --csv COINCIDENCE_CSV [options] INPUT_LIST.txt\n\n"
+        << "Plot waveforms selected by run_coincidence. COINCIDENCE_CSV must be a\n"
+        << "run_coincidence output named\n"
+        << "coincidence_scan_run_RUN_TIMESTAMP.csv. INPUT_LIST supplies the ROOT\n"
+        << "files containing the waveform samples referenced by that CSV.\n\n"
         << "Options:\n"
         << "  --config FILE                 Waveform interval INI file\n"
         << "  --output-dir DIR             Output directory\n"
-        << "  --csv FILE                   Explicit timestamped selection CSV\n"
-        << "  --csv-suffix SUFFIX          Selection CSV filename suffix\n"
+        << "  --csv FILE                   run_coincidence output CSV (required)\n"
         << "  --max-auxiliary-amplitude N  Noise/post-signal limit in ADC (default: 500)\n"
         << "  -h, --help                    Show this help\n";
 }
@@ -190,45 +190,64 @@ Options parseOptions(int argc, char **argv, const fs::path &program_dir)
         }
         if (argument == "--config" || argument == "--output-dir"
             || argument == "--csv"
-            || argument == "--csv-suffix"
             || argument == "--max-auxiliary-amplitude") {
             if (++index >= argc) throw std::runtime_error("Missing value for " + argument);
             if (argument == "--config") options.config = argv[index];
             else if (argument == "--output-dir") options.output_dir = argv[index];
             else if (argument == "--csv") options.csv_file = argv[index];
-            else if (argument == "--csv-suffix") options.csv_suffix = argv[index];
             else options.max_auxiliary_amplitude = std::stod(argv[index]);
             continue;
         }
         if (!argument.empty() && argument.front() == '-') {
             throw std::runtime_error("Unknown option: " + argument);
         }
-        options.input_lists.emplace_back(argument);
+        if (!options.input_list.empty()) {
+            throw std::runtime_error("Unexpected positional argument: " + argument);
+        }
+        options.input_list = argument;
     }
 
-    if (options.input_lists.empty()) {
-        for (const auto &run : DEFAULT_RUNS) {
-            options.input_lists.push_back(program_dir / ("input_run" + run + ".txt"));
-        }
-    } else {
-        for (auto &input_list : options.input_lists) {
-            const fs::path command_line_path = fs::absolute(input_list);
-            const fs::path program_relative_path = program_dir / input_list;
-            input_list = fs::exists(command_line_path)
-                ? command_line_path
-                : program_relative_path;
-        }
+    if (options.csv_file.empty()) {
+        throw std::runtime_error("Missing required option --csv");
     }
-    if (!options.csv_file.empty()) {
+    if (options.input_list.empty()) {
+        throw std::runtime_error("Missing input list");
+    }
+
+    const fs::path command_line_path = fs::absolute(options.input_list);
+    const fs::path program_relative_path = program_dir / options.input_list;
+    options.input_list = fs::exists(command_line_path)
+        ? command_line_path
+        : program_relative_path;
     options.csv_file = fs::absolute(options.csv_file);
-    }
     options.config = fs::absolute(options.config);
     options.output_dir = fs::absolute(options.output_dir);
-    if (options.csv_suffix.size() <= 4
-        || options.csv_suffix.substr(options.csv_suffix.size() - 4) != ".csv") {
-        throw std::runtime_error("CSV suffix must end in .csv");
+    if (!std::isfinite(options.max_auxiliary_amplitude)
+        || options.max_auxiliary_amplitude < 0.0) {
+        throw std::runtime_error(
+            "Maximum auxiliary amplitude must be a finite, non-negative value"
+        );
     }
     return options;
+}
+
+CoincidenceOutputIdentity identifyCoincidenceOutput(const fs::path &csv_file)
+{
+    // run_coincidence is the sole producer accepted here. Besides documenting
+    // the data-flow contract, checking its filename prevents a CSV for one run
+    // from being paired accidentally with another run's ROOT input list.
+    const std::regex filename_pattern(
+        R"(^coincidence_scan_run_([0-9]{6})_([A-Za-z0-9_-]+)\.csv$)"
+    );
+    std::smatch match;
+    const std::string filename = csv_file.filename().string();
+    if (!std::regex_match(filename, match, filename_pattern)) {
+        throw std::runtime_error(
+            "Expected a run_coincidence CSV named "
+            "coincidence_scan_run_RUN_TIMESTAMP.csv, got: " + filename
+        );
+    }
+    return {match[1].str(), match[2].str()};
 }
 
 std::string inferRun(const fs::path &input_list)
@@ -965,7 +984,6 @@ void plotAndSaveStatistics(
 
 void processInputList(
     const fs::path &input_list,
-    const fs::path &program_dir,
     const fs::path &repo_dir,
     const Options &options
 )
@@ -974,35 +992,32 @@ void processInputList(
         throw std::runtime_error("Input list not found: " + input_list.string());
     }
     const std::string run = inferRun(input_list);
-    const std::string csv_name = "waveforms_run_" + run + "_" + options.csv_suffix;
-    
-    fs::path csv_file;
-
-    if (!options.csv_file.empty()) {
-        csv_file = options.csv_file;
-    } else {
-        const std::string csv_name =
-            "waveforms_run_" + run + "_" + options.csv_suffix;
-
-        csv_file = input_list.parent_path() / csv_name;
-        if (!fs::is_regular_file(csv_file)) {
-            csv_file = program_dir / csv_name;
-        }
-    }
-
+    const fs::path &csv_file = options.csv_file;
     if (!fs::is_regular_file(csv_file)) {
+        throw std::runtime_error("Coincidence CSV not found: " + csv_file.string());
+    }
+    const CoincidenceOutputIdentity identity = identifyCoincidenceOutput(csv_file);
+    if (identity.run != run) {
         throw std::runtime_error(
-            "Selection CSV not found: " + csv_file.string()
+            "Run mismatch: coincidence CSV is for run " + identity.run
+            + " but input list resolves to run " + run
         );
     }
 
-    std::cout << "\nProcessing run " << run << '\n';
+    std::cout << "\nProcessing run " << run
+              << " from analysis " << identity.timestamp << '\n';
     std::set<unsigned int> channels;
     std::size_t selected_rows = 0;
     const auto selected = readSelectedKeys(csv_file, channels, selected_rows);
     std::cout << "Selected CSV rows: " << selected_rows << "\nSelected channels:";
     for (const auto channel : channels) std::cout << ' ' << channel;
     std::cout << '\n';
+    if (selected.empty()) {
+        std::cout << "No waveforms were selected by run_coincidence; "
+                     "nothing to plot for run "
+                  << run << '\n';
+        return;
+    }
 
     const auto root_paths = readRootFiles(input_list, repo_dir);
     std::vector<std::string> root_files;
@@ -1018,14 +1033,11 @@ void processInputList(
     const auto selections = loadWaveforms(
         *chain, located, analyzer, options.max_auxiliary_amplitude
     );
-       const std::string label = options.csv_file.empty()
-        ? "run_" + run + "_"
-            + options.csv_suffix.substr(0, options.csv_suffix.size() - 4)
-        : csv_file.stem().string();
+    const std::string label = csv_file.stem().string();
     const fs::path cut_summary = options.output_dir
         / ("selection_cuts_" + label + ".txt");
-    
-        writeCutSummary(
+
+    writeCutSummary(
         cut_summary,
         run,
         input_list,
@@ -1079,9 +1091,7 @@ int main(int argc, char **argv)
 
         gROOT->SetBatch(kTRUE);
         gStyle->SetOptStat(0);
-        for (const auto &input_list : options.input_lists) {
-            processInputList(input_list, program_dir, repo_dir, options);
-        }
+        processInputList(options.input_list, repo_dir, options);
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Error: " << error.what() << '\n';

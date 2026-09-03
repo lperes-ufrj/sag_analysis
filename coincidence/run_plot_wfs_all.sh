@@ -8,6 +8,25 @@ INPUT_DIR="$SCRIPT_DIR/input_lists"
 EXECUTABLE="$REPO_DIR/bin/plot_wfs_coincidence"
 MAX_AUXILIARY_AMPLITUDE="500"
 
+if (($# != 1)); then
+    echo "Usage: $0 ANALYSIS_TIMESTAMP" >&2
+    echo "Example: $0 20260903_120000" >&2
+    exit 2
+fi
+
+ANALYSIS_TIMESTAMP=$1
+if [[ ! $ANALYSIS_TIMESTAMP =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "Error: ANALYSIS_TIMESTAMP may contain only letters, digits, '-' and '_'" >&2
+    exit 2
+fi
+
+ANALYSIS_DIR="$SCRIPT_DIR/saved_coincidences/$ANALYSIS_TIMESTAMP"
+OUTPUT_DIR="$SCRIPT_DIR/selected_waveforms/$ANALYSIS_TIMESTAMP"
+
+if [[ ! -d $ANALYSIS_DIR ]]; then
+    echo "Error: analysis directory not found: $ANALYSIS_DIR" >&2
+    exit 1
+fi
 
 # Compile only when the executable is missing or its sources changed.
 make -C "$SCRIPT_DIR" plot_wfs_coincidence || exit 1
@@ -18,17 +37,15 @@ if command -v root-config >/dev/null 2>&1; then
     export LD_LIBRARY_PATH="$ROOT_LIBRARY_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 fi
 
-OUTPUT_DIR="$SCRIPT_DIR/selected_waveforms"
-
 mkdir -p "$OUTPUT_DIR"
 
 shopt -s nullglob
 selection_csvs=(
-    "$SCRIPT_DIR"/waveforms_run_*_coinc_2030*.csv
+    "$ANALYSIS_DIR"/coincidence_scan_run_*_"$ANALYSIS_TIMESTAMP".csv
 )
 
 if ((${#selection_csvs[@]} == 0)); then
-    echo "Error: no waveforms_run_*.csv files found in $SCRIPT_DIR" >&2
+    echo "Error: no run_coincidence CSV files found in $ANALYSIS_DIR" >&2
     exit 1
 fi
 
@@ -40,10 +57,11 @@ for index in "${!selection_csvs[@]}"; do
     selection_csv=${selection_csvs[$index]}
     filename=${selection_csv##*/}
 
-    if [[ $filename =~ ^waveforms_run_([0-9]{6})_.+\.csv$ ]]; then
+    if [[ $filename =~ ^coincidence_scan_run_([0-9]{6})_(.+)\.csv$ ]] \
+        && [[ ${BASH_REMATCH[2]} == "$ANALYSIS_TIMESTAMP" ]]; then
         run=${BASH_REMATCH[1]}
     else
-        echo "Skipping unrecognized selection CSV: $filename" >&2
+        echo "Skipping file that is not from this run_coincidence batch: $filename" >&2
         continue
     fi
 
@@ -79,14 +97,9 @@ echo
 echo "========================= Summary =========================="
 echo "Successful runs (${#successful_runs[@]}): ${successful_runs[*]:-none}"
 echo "Failed runs     (${#failed_runs[@]}): ${failed_runs[*]:-none}"
+echo "Analysis timestamp: $ANALYSIS_TIMESTAMP"
+echo "Plot output: $OUTPUT_DIR"
 
 if ((${#failed_runs[@]} > 0)); then
     exit 1
 fi
-
-./bin/plot_wfs_coincidence \
-  --config coincidence/waveform_intervals.ini \
-  --output-dir coincidence/selected_waveforms \
-  --csv coincidence/waveforms_run_039787_coinc_2030-2031-2040-2041_vs_2050-2051-2060-2061_save_2070-2071-2080-2081_window_10_ticks_min_amplitude_0_adc.csv \
-  --max-auxiliary-amplitude 500 \
-  coincidence/input_lists/input_run039787.txt
