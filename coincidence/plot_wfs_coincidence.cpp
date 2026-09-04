@@ -80,12 +80,19 @@ struct LocatedWaveform {
     std::size_t multiplicity = 1;
 };
 
+struct FPromptRecord {
+    WaveformKey key;
+    double value = 0.0;
+};
+
 struct WaveformRecord {
     double baseline = 0.0;
     std::vector<short> adc;
 };
 
 using RecordsByChannel = std::map<unsigned int, std::vector<WaveformRecord>>;
+using FPromptRecordsByChannel =
+    std::map<unsigned int, std::vector<FPromptRecord>>;
 struct CutStatistics {
     std::size_t from_coincidence = 0;
     std::size_t rejected_noise = 0;
@@ -102,6 +109,7 @@ struct CutStatistics {
 struct WaveformSelections {
     RecordsByChannel from_coincidence;
     RecordsByChannel final_selection;
+    FPromptRecordsByChannel final_fprompt;
     CutStatistics cuts;
 };
 
@@ -489,8 +497,17 @@ WaveformSelections loadWaveforms(
             rejected_total += item.multiplicity;
             continue;
         }
+
+        // Calculate f_prompt only after the existing five cuts have accepted
+        // the waveform. This keeps the selection identical and guarantees that
+        // the exported rows describe exactly the final-selection population.
+        const double fprompt_value = analyzer.fprompt(*adc, item.key.channel);
         for (std::size_t copy = 0; copy < item.multiplicity; ++copy) {
             selections.final_selection[item.key.channel].push_back({baseline, *adc});
+            selections.final_fprompt[item.key.channel].push_back({
+                item.key,
+                fprompt_value
+            });
         }
     }
 
@@ -726,6 +743,55 @@ void writeStatisticsCsv(const fs::path &filename, const Statistics &statistics)
                << statistics.median[index] << ','
                << statistics.percentile_16[index] << ','
                << statistics.percentile_84[index] << '\n';
+    }
+}
+
+void writeFpromptCsvs(
+    const FPromptRecordsByChannel &records_by_channel,
+    const std::string &run,
+    const std::string &label,
+    const fs::path &output_dir,
+    std::size_t expected_total
+)
+{
+    std::size_t total = 0;
+    for (const auto &[channel, records] : records_by_channel) {
+        total += records.size();
+        const fs::path filename = output_dir
+            / ("fprompt_" + std::to_string(channel) + "_" + label + ".csv");
+        std::ofstream output(filename);
+        if (!output) {
+            throw std::runtime_error("Could not create " + filename.string());
+        }
+
+        // The run/event/channel/index columns make every value traceable back
+        // to the run_coincidence row while `fprompt` can be histogrammed
+        // directly for this run/channel file.
+        output << "run,event,channel,waveform_index_save,fprompt\n";
+        output << std::setprecision(std::numeric_limits<double>::max_digits10);
+        for (const auto &record : records) {
+            if (record.key.channel != channel) {
+                throw std::runtime_error("Internal channel mismatch in fprompt records");
+            }
+            output << run << ','
+                   << record.key.event << ','
+                   << record.key.channel << ','
+                   << record.key.waveform_index << ','
+                   << record.value << '\n';
+        }
+        if (!output) {
+            throw std::runtime_error("Failed while writing " + filename.string());
+        }
+        std::cout << "Saved " << records.size() << " fprompt values to "
+                  << filename << '\n';
+    }
+
+    if (total != expected_total) {
+        throw std::runtime_error(
+            "Internal fprompt row-count mismatch: expected "
+            + std::to_string(expected_total) + ", prepared "
+            + std::to_string(total)
+        );
     }
 }
 
@@ -1052,6 +1118,13 @@ void processInputList(
         selections.final_selection
     );
 
+    writeFpromptCsvs(
+        selections.final_fprompt,
+        run,
+        label,
+        options.output_dir,
+        selections.cuts.final_selection
+    );
     plotAllWaveformsForSelection(
         channels,
         selections.from_coincidence,
