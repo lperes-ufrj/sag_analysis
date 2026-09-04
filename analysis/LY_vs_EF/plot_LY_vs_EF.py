@@ -13,7 +13,7 @@ import time
 # ============================================================
 
 path_templates = Path("../../filter/templates_large_pulses/")
-path_waveforms = Path("../../coincidence/selected_waveforms/20260903_154312/")
+path_waveforms = Path("../../coincidence/selected_waveforms/20260903_121324/")
 
 
 # ============================================================
@@ -103,7 +103,7 @@ csv_files_0_adc = sorted(
     
 )
 
-CHANNELS_TO_PLOT = {1060,1061}
+CHANNELS_TO_PLOT = {2050,2051,2060,2061}
 
 print(f"Found {len(csv_files_0_adc)} CSV files.")
 
