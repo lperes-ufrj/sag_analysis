@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr double DEFAULT_MAX_AUXILIARY_AMPLITUDE = 500.0;
-constexpr double MAX_FULL_RANGE_AMPLITUDE = 9000.0;
+constexpr double MAX_FULL_RANGE_AMPLITUDE = 10000.0;
 constexpr int MAX_WAVEFORM_DENSITY_Y_BINS = 2000;
 
 struct Options {

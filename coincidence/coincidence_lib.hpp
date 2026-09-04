@@ -48,6 +48,7 @@ public:
     int signalPeakTick(const std::vector<short> &waveform, unsigned int channel) const;
     double noiseRms(const std::vector<short> &waveform, unsigned int channel) const;
     int pulseStart(const std::vector<short> &waveform, unsigned int channel) const;
+    double fprompt(const std::vector<short> &waveform, unsigned int channel) const; // sipm_type: 0 -> HPK, 1 -> FBK
     std::int64_t dtNsPulses(
         const std::vector<short> &waveform_a,
         unsigned int channel_a,

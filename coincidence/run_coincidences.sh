@@ -54,14 +54,24 @@ for threshold_file in "${threshold_files[@]}"; do
     echo "Analysis directory: $ANALYSIS_DIR"
     echo "========================================"
 
+    if [[ $run != "043384" &&
+          $run != "043385" &&
+          $run != "043386" &&
+          $run != "043389" &&
+          $run != "043390" ]]; then
+        echo "Skipping run $run: not in the allowed run list" >&2
+        skipped_runs+=("$run")
+        continue
+    fi
+
     "$EXECUTABLE" "$input_file" \
         --run "$run" \
         --timestamp "$ANALYSIS_TIMESTAMP" \
         --output-dir "$OUTPUT_ROOT" \
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
-        --channels-coincident-left 2030 2031 2040 2041 \
+        --channels-coincident-left 2070 2071 2080 2081 \
         --channels-coincident-right 2050 2051 2060 2061 \
-        --channels-to-save 2070 2071 2080 2081 \
+        --channels-to-save 1010 1011 1020 1021 1030 1031 1060 1061 1070 1071 \
         --window-ticks 10 \
         --min-amplitude-adc 0 \
         --norm-rate-adc-threshold-file "$threshold_file"
@@ -103,9 +113,9 @@ for reference_file in "${reference_files[@]}"; do
         --timestamp "$ANALYSIS_TIMESTAMP" \
         --output-dir "$OUTPUT_ROOT" \
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
-        --channels-coincident-left 2030 2031 2040 2041 \
+        --channels-coincident-left 2070 2071 2080 2081 \
         --channels-coincident-right 2050 2051 2060 2061 \
-        --channels-to-save 2070 2071 2080 2081 \
+        --channels-to-save 1010 1011 1020 1021 1030 1031 1060 1061 1070 1071 \
         --window-ticks 10 \
         --min-amplitude-adc 0
 

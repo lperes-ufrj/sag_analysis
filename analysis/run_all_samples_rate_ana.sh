@@ -32,3 +32,5 @@
  python3 rate_analysis.py --reference-npz /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/reference_run_043387.npz  ../coincidence/input_lists/input_run043384.txt  
  python3 rate_analysis.py --reference-npz /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/reference_run_043387.npz  ../coincidence/input_lists/input_run043389.txt
  python3 rate_analysis.py --reference-npz /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/reference_run_043387.npz  ../coincidence/input_lists/input_run043390.txt
+
+  python3 rate_analysis.py --reference-npz /exp/dune/app/users/lperes/sag_analysis/analysis/RateAnalysis_data/reference_run_043387.npz  ../coincidence/input_lists/input_run040931.txt

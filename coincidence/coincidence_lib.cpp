@@ -13,7 +13,7 @@
 namespace {
 
 constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
-constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
+constexpr double MINIMUM_PEAK_HEIGHT_ADC = 500.0;
 constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
 
 struct PeakCandidate {
@@ -354,3 +354,42 @@ std::unique_ptr<TChain> createChain(const std::vector<std::string> &files)
     }
     return chain;
 }
+
+
+double WaveformAnalyzer::fprompt(const std::vector<short> &waveform, unsigned int channel){
+// sipm_type: 0 -> HPK, 1 -> FBK
+    
+    std::unordered_map<int, int> sipm_prod = {
+        {1010, 0},{1011, 0},{1020, 0},{1021, 0},{1030, 0},{1031, 0},{1040, 0},{1041, 0},
+        {1050, 0},{1051, 0},{1060, 0},{1061, 0},{1070, 0},{1071, 0},{1080, 0},{1081, 0},
+        {2050, 1},{2051, 1},{2060, 0},{2061, 0},{2070, 0},{2071, 0},{2080, 1},{2081, 1},
+    };
+
+   const auto HPK_fast_interval_start = 60;
+   const auto HPK_fast_interval_stop = 90;
+   const auto FBK_fast_interval_start = 60;
+   const auto FBK_fast_interval_stop = 90;
+
+    const auto [start, stop] = checkedRegion(waveform, channel, "signal");
+    if (sipm_prod.find(channel) != sipm_prod.end()) {
+        int sipm_type = sipm_prod.at(channel);
+        if (sipm_type == 0) {
+            // HPK
+            const auto [fprompt_start, fprompt_stop] = checkedRegion(waveform, channel, "fprompt");
+        } else {
+            // FBK
+            const auto [fprompt_start, fprompt_stop] = checkedRegion(waveform, channel, "fprompt");
+        }
+    }
+    double total_charge = 0.0;
+    double prompt_charge = 0.0;
+    for (int index = start; index < stop; ++index) {
+        total_charge += static_cast<double>(waveform[static_cast<std::size_t>(index)]);
+        if (index >= fprompt_start && index < fprompt_stop) {
+            prompt_charge += static_cast<double>(waveform[static_cast<std::size_t>(index)]);
+        }
+    }
+    if (total_charge == 0.0) return 0.0;
+    return prompt_charge / total_charge;
+
+} 

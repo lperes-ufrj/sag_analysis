@@ -13,48 +13,74 @@ import time
 # ============================================================
 
 path_templates = Path("../../filter/templates_large_pulses/")
-path_waveforms = Path("../../coincidence/selected_waveforms/")
+path_waveforms = Path("../../coincidence/selected_waveforms/20260903_154312/")
 
 
 # ============================================================
 # Load templates
 # ============================================================
 
-templates_ch_2050_charge = np.trapz(
-    np.loadtxt(path_templates / "template_42320_M5_1.txt")
-)
+templates_ch_1010_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
+templates_ch_1011_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
+templates_ch_1020_charge = np.trapz(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
+templates_ch_1021_charge = np.trapz(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
+templates_ch_1030_charge = np.trapz(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
+templates_ch_1031_charge = np.trapz(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
+templates_ch_1040_charge = np.trapz(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
+templates_ch_1041_charge = np.trapz(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
+templates_ch_1050_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
+templates_ch_1051_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
+templates_ch_1060_charge = np.trapz(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
+templates_ch_1061_charge = np.trapz(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
+templates_ch_1070_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
+templates_ch_1071_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
+templates_ch_1080_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
+templates_ch_1081_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
 
-templates_ch_2051_charge = np.trapz(
-    np.loadtxt(path_templates / "template_42320_M5_2.txt")
-)
-
-templates_ch_2060_charge = np.trapz(
-    np.loadtxt(path_templates / "template_40808_M6_1.txt")
-)
-
-templates_ch_2061_charge = np.trapz(
-    np.loadtxt(path_templates / "template_40808_M6_2.txt")
-)
-
-templates_ch_2070_charge = np.trapz(
-    np.loadtxt(path_templates / "template_43229_M7_1.txt")
-)
-
-templates_ch_2071_charge = np.trapz(
-    np.loadtxt(path_templates / "template_43229_M7_2.txt")
-)
-
-templates_ch_2080_charge = np.trapz(
-    np.loadtxt(path_templates / "template_42321_M8_1.txt")
-)
-
-templates_ch_2081_charge = np.trapz(
-    np.loadtxt(path_templates / "template_42321_M8_2.txt")
-)
+templates_ch_2010_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
+templates_ch_2011_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
+# Não existe template M2_1 para o canal 2020.
+templates_ch_2021_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
+templates_ch_2030_charge = np.trapz(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
+templates_ch_2031_charge = np.trapz(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
+templates_ch_2040_charge = np.trapz(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
+templates_ch_2041_charge = np.trapz(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
+templates_ch_2050_charge = np.trapz(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
+templates_ch_2051_charge = np.trapz(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
+templates_ch_2060_charge = np.trapz(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
+templates_ch_2061_charge = np.trapz(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
+templates_ch_2070_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
+templates_ch_2071_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
+templates_ch_2080_charge = np.trapz(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
+templates_ch_2081_charge = np.trapz(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
 
 
 # Template integral associated with each channel
 list_templates_charge = {
+    1010: templates_ch_1010_charge,
+    1011: templates_ch_1011_charge,
+    1020: templates_ch_1020_charge,
+    1021: templates_ch_1021_charge,
+    1030: templates_ch_1030_charge,
+    1031: templates_ch_1031_charge,
+    1040: templates_ch_1040_charge,
+    1041: templates_ch_1041_charge,
+    1050: templates_ch_1050_charge,
+    1051: templates_ch_1051_charge,
+    1060: templates_ch_1060_charge,
+    1061: templates_ch_1061_charge,
+    1070: templates_ch_1070_charge,
+    1071: templates_ch_1071_charge,
+    1080: templates_ch_1080_charge,
+    1081: templates_ch_1081_charge,
+
+    2010: templates_ch_2010_charge,
+    2011: templates_ch_2011_charge,
+    2021: templates_ch_2021_charge,
+    2030: templates_ch_2030_charge,
+    2031: templates_ch_2031_charge,
+    2040: templates_ch_2040_charge,
+    2041: templates_ch_2041_charge,
     2050: templates_ch_2050_charge,
     2051: templates_ch_2051_charge,
     2060: templates_ch_2060_charge,
@@ -72,12 +98,12 @@ list_templates_charge = {
 
 csv_files_0_adc = sorted(
     path_waveforms.glob(
-        "channel_*_run_*coinc_2030*min_amplitude_0_adc.csv"
+        "channel_*_run_*.csv"
     )
     
 )
 
-CHANNELS_TO_PLOT = {2070,2071}
+CHANNELS_TO_PLOT = {1060,1061}
 
 print(f"Found {len(csv_files_0_adc)} CSV files.")
 
@@ -223,7 +249,7 @@ def parse_filename(csv_file):
     """
 
     match = re.search(
-        r"channel_(\d+)_waveforms_run_(\d+)",
+        r"channel_(\d+)_coincidence_scan_run_(\d+)",
         csv_file.name,
     )
 
@@ -232,6 +258,7 @@ def parse_filename(csv_file):
 
     channel = int(match.group(1))
     run = int(match.group(2))
+
 
 
     return channel, run
@@ -320,7 +347,6 @@ print("\n========================================")
 print("Calculating relative S1")
 print("========================================")
 
-
 for csv_file in csv_files_0_adc:
 
     channel, run = parse_filename(csv_file)
@@ -330,6 +356,8 @@ for csv_file in csv_files_0_adc:
 
     if channel is None:
         continue
+    
+    print(csv_file)
 
     # Make sure run has an E-field
     if run not in run_to_efield:
@@ -362,6 +390,7 @@ for csv_file in csv_files_0_adc:
         mean_waveform,
         list_templates_charge[channel],
     )
+    
 
     relative_s1 = (
         charge /
@@ -439,7 +468,7 @@ for channel in sorted(channel_points_0_adc):
             relative_s1
         )
 
-
+print(f"Found {len(csv_files_0_adc)} CSV files.")
 # ============================================================
 # Mean S1/S1_0 at every electric field
 # ============================================================
