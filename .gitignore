@@ -6,6 +6,7 @@
 *.pdf
 *.png
 *.csv
+*.ipynb
 
 # Exceptions
 !analysis/*.sh
