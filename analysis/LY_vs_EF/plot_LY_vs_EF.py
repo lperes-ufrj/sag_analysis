@@ -13,7 +13,7 @@ import time
 # ============================================================
 
 path_templates = Path("../../filter/templates_large_pulses/")
-path_waveforms = Path("../../coincidence/selected_waveforms/20260903_121324/")
+path_waveforms = Path("../../coincidence/selected_waveforms/20260909_213507/")
 
 
 # ============================================================
@@ -155,6 +155,7 @@ run_to_efield = {
     43387: 0.771,
     43389: 0.44,
     43390: 0.44,
+    41523: 0.834,
 
 }
 
@@ -646,6 +647,7 @@ plt.errorbar(
     zorder=10,
 )
 
+plt.text(0.0,0.3, path_waveforms)
 
 # ============================================================
 # Plot formatting

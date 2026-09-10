@@ -1,0 +1,15 @@
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0000_df-s04-d0_dw_0_20250909T150658_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0000_df-s04-d1_dw_0_20250909T150655_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0000_df-s04-d2_dw_0_20250909T150656_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0000_df-s04-d3_dw_0_20250909T150657_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0001_df-s04-d0_dw_0_20250909T150813_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0001_df-s04-d1_dw_0_20250909T150806_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0001_df-s04-d2_dw_0_20250909T150807_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0001_df-s04-d3_dw_0_20250909T150808_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0002_df-s04-d0_dw_0_20250909T150924_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0002_df-s04-d1_dw_0_20250909T150917_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0002_df-s04-d3_dw_0_20250909T150923_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0003_df-s04-d0_dw_0_20250909T151036_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0003_df-s04-d1_dw_0_20250909T151030_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0003_df-s04-d3_dw_0_20250909T151035_cosmic_gallery.root
+/pnfs/dune/scratch/users/lperes/sag_analysis/fnal/20114/1/001/np02vd_raw_run039350_0004_df-s04-d3_dw_0_20250909T151147_cosmic_gallery.root

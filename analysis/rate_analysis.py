@@ -354,7 +354,7 @@ def main() -> None:
 
     run, files = read_input_list(args.input_list)
     
-    output_dir = Path(__file__).resolve().parent / "RateAnalysis_data"
+    output_dir = Path(__file__).resolve().parent / "RateAnalysis_data_292kV"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"Run: {run}")

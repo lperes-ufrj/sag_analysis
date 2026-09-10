@@ -6,7 +6,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd)
 EXECUTABLE="$REPO_DIR/bin/run_coincidence"
 INPUT_DIR="$SCRIPT_DIR/input_lists"
-THRESHOLD_DIR="$REPO_DIR/analysis/RateAnalysis_data"
+THRESHOLD_DIR="$REPO_DIR/analysis/RateAnalysis_data_292kV"
 OUTPUT_ROOT="$SCRIPT_DIR/saved_coincidences"
 
 if (($# > 1)); then
@@ -54,15 +54,6 @@ for threshold_file in "${threshold_files[@]}"; do
     echo "Analysis directory: $ANALYSIS_DIR"
     echo "========================================"
 
-    if [[ $run != "043384" &&
-          $run != "043385" &&
-          $run != "043386" &&
-          $run != "043389" &&
-          $run != "043390" ]]; then
-        echo "Skipping run $run: not in the allowed run list" >&2
-        skipped_runs+=("$run")
-        continue
-    fi
 
     "$EXECUTABLE" "$input_file" \
         --run "$run" \
@@ -70,8 +61,8 @@ for threshold_file in "${threshold_files[@]}"; do
         --output-dir "$OUTPUT_ROOT" \
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --channels-coincident-left 2070 2071 2080 2081 \
-        --channels-coincident-right 2050 2051 2060 2061 \
-        --channels-to-save 1010 1011 1020 1021 1030 1031 1060 1061 1070 1071 \
+        --channels-coincident-right 2010 2011 2020 2021 \
+        --channels-to-save 2050 2051 2060 2061 \
         --window-ticks 10 \
         --min-amplitude-adc 0 \
         --norm-rate-adc-threshold-file "$threshold_file"
@@ -114,8 +105,8 @@ for reference_file in "${reference_files[@]}"; do
         --output-dir "$OUTPUT_ROOT" \
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --channels-coincident-left 2070 2071 2080 2081 \
-        --channels-coincident-right 2050 2051 2060 2061 \
-        --channels-to-save 1010 1011 1020 1021 1030 1031 1060 1061 1070 1071 \
+        --channels-coincident-right 2010 2011 2020 2021 \
+        --channels-to-save 2050 2051 2060 2061 \
         --window-ticks 10 \
         --min-amplitude-adc 0
 
