@@ -20,39 +20,39 @@ path_waveforms = Path("../../coincidence/selected_waveforms/20260909_213507/")
 # Load templates
 # ============================================================
 
-templates_ch_1010_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
-templates_ch_1011_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
-templates_ch_1020_charge = np.trapz(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
-templates_ch_1021_charge = np.trapz(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
-templates_ch_1030_charge = np.trapz(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
-templates_ch_1031_charge = np.trapz(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
-templates_ch_1040_charge = np.trapz(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
-templates_ch_1041_charge = np.trapz(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
-templates_ch_1050_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
-templates_ch_1051_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
-templates_ch_1060_charge = np.trapz(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
-templates_ch_1061_charge = np.trapz(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
-templates_ch_1070_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
-templates_ch_1071_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
-templates_ch_1080_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
-templates_ch_1081_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
+templates_ch_1010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
+templates_ch_1011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
+templates_ch_1020_charge = np.trapezoid(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
+templates_ch_1021_charge = np.trapezoid(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
+templates_ch_1030_charge = np.trapezoid(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
+templates_ch_1031_charge = np.trapezoid(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
+templates_ch_1040_charge = np.trapezoid(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
+templates_ch_1041_charge = np.trapezoid(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
+templates_ch_1050_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
+templates_ch_1051_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
+templates_ch_1060_charge = np.trapezoid(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
+templates_ch_1061_charge = np.trapezoid(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
+templates_ch_1070_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
+templates_ch_1071_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
+templates_ch_1080_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
+templates_ch_1081_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
 
-templates_ch_2010_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
-templates_ch_2011_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
+templates_ch_2010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
+templates_ch_2011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
 # Não existe template M2_1 para o canal 2020.
-templates_ch_2021_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
-templates_ch_2030_charge = np.trapz(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
-templates_ch_2031_charge = np.trapz(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
-templates_ch_2040_charge = np.trapz(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
-templates_ch_2041_charge = np.trapz(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
-templates_ch_2050_charge = np.trapz(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
-templates_ch_2051_charge = np.trapz(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
-templates_ch_2060_charge = np.trapz(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
-templates_ch_2061_charge = np.trapz(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
-templates_ch_2070_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
-templates_ch_2071_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
-templates_ch_2080_charge = np.trapz(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
-templates_ch_2081_charge = np.trapz(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
+templates_ch_2021_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
+templates_ch_2030_charge = np.trapezoid(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
+templates_ch_2031_charge = np.trapezoid(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
+templates_ch_2040_charge = np.trapezoid(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
+templates_ch_2041_charge = np.trapezoid(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
+templates_ch_2050_charge = np.trapezoid(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
+templates_ch_2051_charge = np.trapezoid(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
+templates_ch_2060_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
+templates_ch_2061_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
+templates_ch_2070_charge = np.trapezoid(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
+templates_ch_2071_charge = np.trapezoid(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
+templates_ch_2080_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
+templates_ch_2081_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
 
 
 # Template integral associated with each channel
@@ -103,7 +103,7 @@ csv_files_0_adc = sorted(
     
 )
 
-CHANNELS_TO_PLOT = {2050,2051,2060,2061}
+CHANNELS_TO_PLOT = {2060,2061}
 
 print(f"Found {len(csv_files_0_adc)} CSV files.")
 
@@ -227,7 +227,7 @@ def Calc_Charge(waveform, template_charge):
     of the corresponding template.
     """
 
-    waveform_charge = np.trapz(waveform[50:500])
+    waveform_charge = np.trapezoid(waveform[50:500])
 
     return waveform_charge / template_charge
 

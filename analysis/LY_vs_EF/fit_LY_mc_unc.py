@@ -1,7 +1,9 @@
-"""Fit relative LY for one channel using errors on the mean waveform.
+"""Fit relative LY with MC propagation of the supplied charge uncertainties.
 
-Usage: python analysis/LY_vs_EF/fit_LY_one_ch.py SAMPLE_LABEL CHANNEL
-Sample errors are assumed uncorrelated. Template charge is treated as exact.
+Usage: python analysis/LY_vs_EF/fit_LY_mc_unc.py
+Runs are sampled independently before sharing a reference in normalization.
+The fits use marginal errors, without covariance between electric-field points.
+The charge-uncertainty model is provided by src.calc_integral_and_error.
 """
 from pathlib import Path
 from collections import defaultdict
@@ -15,7 +17,6 @@ import pandas as pd
 import re
 import time
 import dunestyle.matplotlib as dunestyle
-
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
@@ -213,6 +214,11 @@ efield_previous = np.array([
     0.485625,
 ])
 
+def formatar_nome_arquivo(texto):
+    # Substitui os espaços por '_' e os pontos por 'p'
+    texto_limpo = texto.replace(' ', '_').replace('.', 'p').replace('/','_div_')
+    return texto_limpo
+
 
 def Calc_Rel_LY(charge, template_charge):
     return charge / template_charge
@@ -226,6 +232,101 @@ def Birks(E, B_1, k):
     E = np.asarray(E, dtype=float)
     return 1.0 - B_1 * E / (E + k)
 
+def mc_central_uncertainty(x, err_minus, err_plus,
+                        weights=None, n_samples=500_000, seed=42, make_draw_plots= False, label=None):
+    x = np.asarray(x, dtype=float)
+    down = np.asarray(err_minus, dtype=float)
+    up = np.asarray(err_plus, dtype=float)
+
+    # Equal weights by default.
+    a = np.ones(len(x)) if weights is None else np.asarray(weights, float)
+    a = a / a.sum()
+
+    rng = np.random.default_rng(seed)
+    z = rng.standard_normal((n_samples, len(x)))
+
+    shifts = np.where(z >= 0, up * z, down * z)
+    combined = (x + shifts) @ a
+
+    low, central, high = np.quantile(
+        combined, [0.15865525393145707, 0.5, 0.8413447460685429]
+    )
+
+    if make_draw_plots == True:
+        fig, ax = plt.subplots(dpi=150)
+        ax.hist(combined, bins=60, alpha=0.7, label=label)
+
+        ax.axvline(central, color="black", linewidth=2,
+                   label=f"Central: {central:.4f}")
+        ax.axvline(low, color="red", linestyle="--",
+                   label=f"Lower: {low:.4f}")
+        ax.axvline(high, color="green", linestyle="--",
+                   label=f"Upper: {high:.4f}")
+
+        ax.legend()
+        ax.set_ylabel("MC Draw (Counts/bin)")
+        ax.set_xlabel(rf"$S/S_0$ Relative Light Yield")
+        fig.savefig(
+            repo_dir / "analysis" / "LY_vs_EF"
+            / f"fit_LY_mc_fit_{formatar_nome_arquivo(label)}_{'_'.join(map(str, CHANNELS))}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        plt.close(fig)
+    return central, central - low, high - central
+
+def mc_uncertainty_norm(s_central, s_up, s_low, s0_central, s0_up, s0_low,
+                        n_samples=500_000, seed=42, return_draws=False):
+    """Normalize scalar/vector S by one shared S0; up/low inputs are bounds."""
+
+    s_central = np.asarray(s_central, dtype=float)
+    s_up = np.asarray(s_up, dtype=float)
+    s_low = np.asarray(s_low, dtype=float)
+
+    s0_central = np.asarray(s0_central, dtype=float).item()
+    s0_up = np.asarray(s0_up, dtype=float).item()
+    s0_low = np.asarray(s0_low, dtype=float).item()
+
+    if s_central.ndim > 1 or s_central.size == 0:
+        raise ValueError("S must be a scalar or nonempty 1-D array.")
+    if any(not np.all(np.isfinite(value)) for value in
+           (s_central, s_up, s_low, s0_central, s0_up, s0_low)):
+        raise ValueError("Charges and bounds must be finite.")
+
+    # Convert upper/lower bounds into error magnitudes.
+    up = s_up - s_central
+    down = s_central - s_low
+    up0 = s0_up - s0_central
+    down0 = s0_central - s0_low
+    if np.any(up < 0) or np.any(down < 0) or up0 < 0 or down0 < 0:
+        raise ValueError("Require lower <= central <= upper.")
+    if s0_central <= 0:
+        raise ValueError("The reference charge must be positive.")
+
+    rng = np.random.default_rng(seed)
+    # Draw each numerator independently.
+    z = rng.standard_normal((n_samples, s_central.size))
+    s_draws = s_central + np.where(z >= 0, up * z, down * z)
+
+    # Draw S0 ONCE per trial and reuse it for every numerator.
+    z0 = rng.standard_normal(n_samples)
+    s0_draws = s0_central + np.where(z0 >= 0, up0 * z0, down0 * z0)
+    if np.any(s0_draws <= 0):
+        raise ValueError("Reference draws reached zero or below; reconsider its uncertainty model.")
+
+    # Each column contains the trials for one relative-LY point.
+    combined = s_draws / s0_draws[:, None]
+
+    if return_draws:
+        return combined
+
+    low, central, high = np.quantile(
+        combined, [0.15865525393145707, 0.5, 0.8413447460685429], axis=0
+    )
+
+    if s_central.ndim == 0:
+        return central.item(), (central - low).item(), (high - central).item()
+    return central, central - low, high - central
 
 def calculate_study_XA(csv_suffix, channel, y_err_runs,path_waveforms):
     csv_files = sorted(
@@ -249,7 +350,6 @@ def calculate_study_XA(csv_suffix, channel, y_err_runs,path_waveforms):
         if ch != channel:
             continue
 
-        ch_found+=1
         run = int(match.group(2))
 
         if run not in run_to_efield:
@@ -265,50 +365,60 @@ def calculate_study_XA(csv_suffix, channel, y_err_runs,path_waveforms):
         ly_err_low = Calc_Rel_LY(charge_lower, list_templates_charge[ch])
         
         charge_records.append((run, ch, ly_err_low, ly_central, ly_err_up))
+        ch_found += 1
 
         if run == 39510:
             reference_charge_central[ch] = ly_central
-            reference_charge_lower[ch] = ly_err_up
-            reference_charge_upper[ch] = ly_err_low
+            reference_charge_lower[ch] = ly_err_low
+            reference_charge_upper[ch] = ly_err_up
 
-    references = len(reference_charge_central)
-    #print(references)
-    if not references:
-        print(
-            f"Missing run 039510 reference for channels {sorted(reference_charge_central.keys())}"
-        )
+    if not charge_records:
+        empty = np.array([], dtype=float)
+        return empty, empty.copy(), empty.copy(), empty.copy(), 0
 
-    points_by_efield_central = defaultdict(list)
-    points_by_efield_err_up = defaultdict(list)
-    points_by_efield_err_low = defaultdict(list)
-    for run, channel, ly_err_low, ly_central, ly_err_up in charge_records:
-        points_by_efield_central[run_to_efield[run]].append(
-            ly_central / reference_charge_central[channel]
-        )
-        points_by_efield_err_up[run_to_efield[run]].append(
-            ly_err_up / reference_charge_central[channel]
-        )
-        points_by_efield_err_low[run_to_efield[run]].append(
-            ly_err_low / reference_charge_central[channel]
-        )
+    if channel not in reference_charge_central:
+        raise RuntimeError(f"Missing run 039510 reference for channel {channel}")
 
-    efields = np.asarray(sorted(points_by_efield_central), dtype=float)
-   # print(f"Points HV: {points_by_efield_central}")
+    runs = np.array([record[0] for record in charge_records])
+    if np.unique(runs).size != runs.size:
+        raise ValueError(f"Duplicate run measurements for channel {channel}")
+    lower = np.array([record[2] for record in charge_records])
+    central = np.array([record[3] for record in charge_records])
+    upper = np.array([record[4] for record in charge_records])
 
-    means_rel_ly_central = np.asarray(
-        [np.mean(points_by_efield_central[efield]) for efield in efields],
-        dtype=float,
+    draws = mc_uncertainty_norm(
+        central, upper, lower,
+        reference_charge_central[channel],
+        reference_charge_upper[channel],
+        reference_charge_lower[channel],
+        return_draws=True,
     )
-    means_rel_ly_err_up = np.asarray(
-        [np.mean(points_by_efield_err_up[efield]) for efield in efields],
-        dtype=float,
-    )
-    means_rel_ly_err_low = np.asarray(
-        [np.mean(points_by_efield_err_low[efield]) for efield in efields],
-        dtype=float,
-    )
-    return efields, means_rel_ly_central, means_rel_ly_err_up, means_rel_ly_err_low, ch_found
 
+    # Reference divided by itself is exactly one.
+    draws[:, runs == 39510] = 1.0
+
+    points_by_efield = defaultdict(list)
+
+    for i, run in enumerate(runs):
+        points_by_efield[run_to_efield[run]].append(draws[:, i])
+
+    efields = np.asarray(sorted(points_by_efield), dtype=float)
+    results = []
+
+    for efield in efields:
+        # Average repeated runs within each MC trial.
+        combined = np.mean(points_by_efield[efield], axis=0)
+
+        low, central, high = np.quantile(
+            combined,
+            [0.15865525393145707, 0.5, 0.8413447460685429],
+        )
+
+        results.append((central, low, high))
+
+    central, lower, upper = np.asarray(results, dtype=float).T
+
+    return efields, central, upper, lower, ch_found
 
 
 
@@ -329,9 +439,7 @@ def main() -> None:
         for ch in CHANNELS:
             y_err = read_txt_error_file(sample_label, ch)
             #print(f"y_err: {y_err}")
-           # print(f"Channel {ch}:")
             current_efields, rel_ly, rel_ly_err_up, rel_ly_err_low, ch_found  = calculate_study_XA(sample_label, ch, y_err,path_waveforms)
-           # print(f"***********************************")
             if ch_found == 0:
                 print(f"No data found for channel {ch} in sample {sample_label}. Skipping.")
                 continue
@@ -355,24 +463,65 @@ def main() -> None:
             mean_rel_ly_err_low.append(rel_ly_err_low)
 
             #print(rel_ly, rel_ly_err_up, rel_ly_err_low)
-    mean_rel_ly = np.mean(np.array(mean_rel_ly), axis=0)
-    mean_rel_ly_err_up = np.mean(np.array(mean_rel_ly_err_up), axis=0)
-    mean_rel_ly_err_low = np.mean(np.array(mean_rel_ly_err_low), axis=0)
+    if efields is None or not mean_rel_ly:
+        raise RuntimeError("No valid data found.")
 
-    #print(mean_rel_ly, mean_rel_ly_err_up, mean_rel_ly_err_low)
+    # Shape: (number of channel/sample combinations, number of fields).
+    central_by_channel = np.stack(mean_rel_ly)
+    lower_by_channel = np.stack(mean_rel_ly_err_low)
+    upper_by_channel = np.stack(mean_rel_ly_err_up)
+
+    # calculate_study_XA returns bounds; MC requires error magnitudes.
+    down_by_channel = central_by_channel - lower_by_channel
+    up_by_channel = upper_by_channel - central_by_channel
+
+    if (
+        not np.all(np.isfinite(central_by_channel))
+        or not np.all(np.isfinite(down_by_channel))
+        or not np.all(np.isfinite(up_by_channel))
+        or np.any(down_by_channel < 0)
+        or np.any(up_by_channel < 0)
+    ):
+        raise ValueError("Invalid channel values or uncertainty bounds.")
+
+    results = []
+
+    for i, efield in enumerate(efields):
+        if efield == 0.0:
+            # Reference divided by itself: exactly one, with zero uncertainty.
+            results.append((1.0, 0.0, 0.0))
+            continue
+
+        results.append(
+            mc_central_uncertainty(
+                central_by_channel[:, i],
+                down_by_channel[:, i],
+                up_by_channel[:, i],
+                seed=42 + i,
+                make_draw_plots= True,
+                label=rf"{efield} kV/cm"
+            )
+        )
+
+    mean_rel_ly, err_low, err_up = np.asarray(results, dtype=float).T
+
+    # Preserve the bounds convention used by your existing plotting code.
+    mean_rel_ly_err_low = mean_rel_ly - err_low
+    mean_rel_ly_err_up = mean_rel_ly + err_up
+
+    # Symmetric approximation for the existing LeastSquares fits.
+    err = 0.5 * (err_low + err_up)
+
     fit_mask = (
         (efields > 0.0)
         & np.isfinite(efields)
         & np.isfinite(mean_rel_ly)
-        & np.isfinite(mean_rel_ly_err_up)
-        & (mean_rel_ly_err_up > 0.0)
+        & np.isfinite(err)
+        & (err > 0.0)
     )
 
-
-    err_low = mean_rel_ly - mean_rel_ly_err_low
-    err_up = mean_rel_ly_err_up - mean_rel_ly
-
-    err = (err_low + err_up) / 2  # Half-width
+    if np.count_nonzero(fit_mask) <= 4:
+        raise ValueError("Need at least five valid points for the LArQL fit.")
     cost = LeastSquares(
     efields[fit_mask],
     mean_rel_ly[fit_mask],
@@ -419,7 +568,7 @@ def main() -> None:
     m_birks.migrad()
     m_birks.hesse()
 
-    ndof_birks = np.count_nonzero(fit_mask) - m.nfit
+    ndof_birks = np.count_nonzero(fit_mask) - m_birks.nfit
     reduced_chi2_birks = m_birks.fval / ndof_birks
 
     y_fit_birks = Birks(
@@ -448,7 +597,7 @@ def main() -> None:
     fit_text_birks = (
         rf"$\mathbf{{Fit\ Birks:}}$"
         "\n"
-        rf"$B_1 = {m_birks.values['B_1']:.3f} \pm {m_birks._errors['B_1']:.3f}$"
+        rf"$B_1 = {m_birks.values['B_1']:.3f} \pm {m_birks.errors['B_1']:.3f}$"
         "\n"
         rf"$k_\epsilon = {m_birks.values['k']:.3f} \pm {m_birks.errors['k']:.3f}$"
         "\n"
@@ -457,8 +606,9 @@ def main() -> None:
         )
 
     plt.figure(dpi=150)
+    plt.grid()
     plt.text(
-        0.95,
+        0.97,
         0.95,
         fit_text_larql,
         transform=plt.gca().transAxes,
@@ -473,8 +623,8 @@ def main() -> None:
     )
 
     plt.text(
-        0.95,
-        0.62,
+        0.97,
+        0.63,
         fit_text_birks,
         transform=plt.gca().transAxes,
         ha="right",
@@ -487,12 +637,8 @@ def main() -> None:
         },
     )
 
-
-
     plt.plot(x_fit, y_fit, color="blue", linewidth=2, label="LArQL fit")
-
     plt.plot(x_fit, y_fit_birks, color="red", ls='--',linewidth=2, label="Birks fit")
-
     plt.scatter(
         efield_previous,
         relative_s1_previous,
@@ -501,7 +647,6 @@ def main() -> None:
         color='gray',
         label="M8 previous study",
     )
-
     # ProtoDUNE-HD reference
     plt.errorbar(
         E,
@@ -516,24 +661,22 @@ def main() -> None:
         label="PD-HD Data",
         zorder=3,
     )
-
     plt.errorbar(
         efields,
         mean_rel_ly,
         yerr=[mean_rel_ly - mean_rel_ly_err_low, mean_rel_ly_err_up - mean_rel_ly],
         fmt=".",
-        label=f"This study, channels: {CHANNELS}",
+        label=f"Mean Channels {CHANNELS}",
     )
     plt.xlabel("Electric field (kV/cm)")
     plt.ylabel(rf"$S/S_0$ (LY Normalized)")
 
-
     plt.ylim([0.3,1.2])
     dunestyle.Preliminary(x=0.05,y=0.9)
     dunestyle.WIP(x=0.05,y=0.83)
-    plt.legend(loc="lower left",ncols=1 ,frameon=False, fontsize=8)
+    plt.legend(loc="lower left",ncols=1 ,frameon=True, fontsize=8)
     plt.savefig(
-        repo_dir / "analysis" / "LY_vs_EF" / f"fit_LY_one_ch_{'_'.join(map(str,CHANNELS))}.png",
+        repo_dir / "analysis" / "LY_vs_EF" / f"fit_LY_chs_{'_'.join(map(str,CHANNELS))}.png",
         dpi=300,
         bbox_inches="tight",
     )
