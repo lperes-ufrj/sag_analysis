@@ -26,8 +26,3 @@ justin simple-workflow \
   --output-pattern "*_${FIELD}_decoder_keepup_logs.tgz:${FNALURL}${USERF}"
 
 done
-
-
-
-  
->>>>>>> 4787005 ([ADD] sh files for analyze Xe runs)
