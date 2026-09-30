@@ -1,7 +1,7 @@
 #!/bin/bash
 
 RUNS=(
-"39350 cosmic"
+"43374 cosmic"
 )
 
 for entry in "${RUNS[@]}"; do
@@ -13,7 +13,7 @@ echo "High voltage: ${FIELD}"
 echo "=============================================="
 
 justin simple-workflow \
-  --mql "files from vd-protodune:vd-protodune__raw__cosmics__39350_v1_official ordered limit 50" \
+  --mql "files from vd-protodune:vd-protodune_43374 ordered limit 100" \
   --jobscript pdvd_decoder_gallery.jobscript \
   --description "ProtoDUNE-VD decoder plus Gallery waveform extraction: run ${RUN}, ${FIELD}" \
   --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
