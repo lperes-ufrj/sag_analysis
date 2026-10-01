@@ -17,6 +17,7 @@ analysis/plot_fprompt/plot_fprompt.ipynb
 !plots/**/*.png
 !coincidence/*/*/*.csv
 !coincidence/*.csv
+!coincidence/*.sh
 !jobs_justin/decoder_selection_jobs/*.sh
 !coincidence/selected_waveforms/**
 
