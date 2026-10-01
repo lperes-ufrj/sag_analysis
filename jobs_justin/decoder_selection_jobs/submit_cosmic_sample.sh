@@ -1,21 +1,7 @@
 #!/bin/bash
 
 RUNS=(
-<<<<<<< HEAD
 "43374 cosmic"
-=======
-<<<<<<<< HEAD:jobs_justin/decoder_selection_jobs/submit_all_xe_runs.sh
-"43440 0p01ppm"
-"43552 1ppm"
-"43717 2ppm"
-"43790 3ppm"
-"43903 5ppm"
-"44010 7ppm"
-"44108 10ppm"
-========
-"43374 cosmic"
->>>>>>>> 4787005 ([ADD] sh files for analyze Xe runs):jobs_justin/decoder_selection_jobs/submit_cosmic_sample.sh
->>>>>>> 4787005 ([ADD] sh files for analyze Xe runs)
 )
 
 for entry in "${RUNS[@]}"; do
