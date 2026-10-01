@@ -22,7 +22,7 @@ analysis/plot_fprompt/plot_fprompt.ipynb
 
 # Compiled binaries
 /bin/
-
+/test/
 #Python Envinroments
 analysis/.venv/
 
