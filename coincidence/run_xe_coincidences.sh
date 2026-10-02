@@ -56,10 +56,10 @@ for input_file in "${input_files[@]}"; do
         --run "$run" \
         --timestamp "$ANALYSIS_TIMESTAMP" \
         --output-dir "$OUTPUT_ROOT" \
-        --config "$SCRIPT_DIR/waveform_intervals.ini" \
-        --channels-coincident-left 2070 2071 2080 2081 \
-        --channels-coincident-right 2010 2011 2020 2021 \
-        --channels-to-save 2050 2051 2060 2061 \
+        --config "$SCRIPT_DIR/waveform_intervals_xe.ini" \
+        --channels-coincident-left 2030 2031 2040 2041 \
+        --channels-coincident-right 2050 2051 2060 2061 \
+        --channels-to-save 2070 2071 2080 2081 \
         --window-ticks 10 \
         --min-amplitude-adc 0
 

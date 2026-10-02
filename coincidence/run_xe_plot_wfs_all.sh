@@ -92,7 +92,7 @@ for index in "${!selection_csvs[@]}"; do
     echo "============================================================"
 
     if "$EXECUTABLE" \
-        --config "$SCRIPT_DIR/waveform_intervals.ini" \
+        --config "$SCRIPT_DIR/waveform_intervals_xe.ini" \
         --output-dir "$OUTPUT_DIR" \
         --csv "$selection_csv" \
         --max-auxiliary-amplitude "$MAX_AUXILIARY_AMPLITUDE" \
