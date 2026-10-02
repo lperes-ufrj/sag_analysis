@@ -12,8 +12,10 @@ import time
 # Paths
 # ============================================================
 
-path_templates = Path("../../filter/templates_large_pulses/")
-path_waveforms = Path("../../coincidence/selected_waveforms/20260909_213507/")
+script_dir = Path(__file__).resolve().parent
+repo_dir = script_dir.parents[1]
+path_templates = repo_dir / "filter" / "templates_large_pulses"
+path_waveforms = repo_dir / "coincidence" / "selected_waveforms" / "20261001_140103"
 
 
 # ============================================================
@@ -96,125 +98,34 @@ list_templates_charge = {
 # Find waveform CSV files
 # ============================================================
 
-csv_files_0_adc = sorted(
+csv_files = sorted(
     path_waveforms.glob(
         "channel_*_run_*.csv"
     )
     
 )
 
-CHANNELS_TO_PLOT = {2060,2061}
+CHANNELS_TO_PLOT = {2050,2051,2060,2061}
 
-print(f"Found {len(csv_files_0_adc)} CSV files.")
+print(f"Found {len(csv_files)} CSV files.")
 
 
 # ============================================================
-# Run -> Electric field
+# Run -> Xe concentration mapping
 # ============================================================
 
-run_to_efield = {
-
-    # Zero-field reference
-    39510: 0.0,
-
-    # Increasing HV scan
-    39511: 0.028571,
-    39512: 0.057143,
-    39514: 0.085714,
-    39515: 0.114286,
-    39516: 0.142857,
-    39517: 0.171429,
-    39518: 0.200000,
-    39519: 0.228571,
-    39521: 0.257143,
-    39522: 0.285714,
-    39523: 0.314286,
-    39525: 0.342857,
-    39526: 0.371429,
-    39527: 0.400000,
-    39528: 0.428571,
-    39529: 0.444857,
-   # 39787: 0.5, bad
-
-    # Decreasing HV scan
-    39500: 0.444857,
-    39501: 0.400000,
-    39502: 0.342857,
-    39503: 0.285714,
-    39504: 0.228571,
-    39506: 0.171429,
-    39507: 0.114286,
-    39508: 0.057143,
-
-    # Higher HV scan
-    43380: 0.685,
-    43381: 0.685,
-    43383: 0.586,
-    43384: 0.586,
-    43386: 0.771,
-    43387: 0.771,
-    43389: 0.44,
-    43390: 0.44,
-    41523: 0.834,
-
+run_to_Xeppm = {
+    43440 : 0.01,
+    43552 : 1.0,
+    43717 : 2.0,
+    43790 : 3.0,
+    43903 : 5.0,
+    44010 : 7.0,
+    44108 : 10.0
 }
 
-
-# ============================================================
-# ProtoDUNE-HD reference data
-# ============================================================
-
-E = np.array([
-    0.000,
-    0.055,
-    0.110,
-    0.166,
-    0.222,
-    0.278,
-    0.333,
-    0.388,
-    0.444,
-    0.501,
-])
-
-S1 = np.array([
-    1.000,
-    0.890,
-    0.792,
-    0.770,
-    0.748,
-    0.698,
-    0.665,
-    0.658,
-    0.630,
-    0.638,
-])
-
-S1_err_low = np.array([
-    0.000,
-    0.022,
-    0.035,
-    0.025,
-    0.025,
-    0.018,
-    0.025,
-    0.030,
-    0.024,
-    0.029,
-])
-
-S1_err_high = np.array([
-    0.000,
-    0.026,
-    0.038,
-    0.020,
-    0.025,
-    0.018,
-    0.023,
-    0.027,
-    0.022,
-    0.028,
-])
+REFERENCE_RUN = 43440
+REFERENCE_XE_PPM = run_to_Xeppm[REFERENCE_RUN]
 
 
 # ============================================================
@@ -227,6 +138,11 @@ def Calc_Charge(waveform, template_charge):
     of the corresponding template.
     """
 
+    waveform = np.asarray(waveform, dtype=float)
+    if waveform.size < 500 or not np.all(np.isfinite(waveform[50:500])):
+        raise ValueError("Expected at least 600 samples with a finite integration window [50:600].")
+    if not np.isfinite(template_charge) or template_charge == 0:
+        raise ValueError("Template charge must be finite and nonzero.")
     waveform_charge = np.trapezoid(waveform[50:500])
 
     return waveform_charge / template_charge
@@ -240,7 +156,7 @@ def parse_filename(csv_file):
     """
     Expected filename structure:
 
-    channel_2050_waveforms_run_039500_...
+    channel_2080_coincidence_scan_run_043440_...
 
     Returns:
         channel : int
@@ -267,19 +183,19 @@ def parse_filename(csv_file):
 
 # ============================================================
 # First pass:
-# Calculate S1 at E = 0 for every channel
+# Calculate the 0.01 ppm reference S1 separately for every channel.
 #
-# Run 39510 is the zero-field reference.
+# Run 43440 is the reference sample.
 # ============================================================
 
-s1_0_0_adc = {}
+reference_s1 = {}
 
 print("\n========================================")
-print("Finding zero-field reference")
+print(f"Finding {REFERENCE_XE_PPM:g} ppm reference (run {REFERENCE_RUN:06d})")
 print("========================================")
 
 
-for csv_file in csv_files_0_adc:
+for csv_file in csv_files:
 
     channel, run = parse_filename(csv_file)
 
@@ -294,8 +210,8 @@ for csv_file in csv_files_0_adc:
     if channel not in list_templates_charge:
         continue
 
-    # Zero-field run
-    if run != 39510:
+    # Xe 0.01 ppm run
+    if run != REFERENCE_RUN:
         continue
 
     df = pd.read_csv(csv_file)
@@ -314,30 +230,42 @@ for csv_file in csv_files_0_adc:
         list_templates_charge[channel],
     )
 
-    s1_0_0_adc[channel] = charge
+    if not np.isfinite(charge) or charge == 0:
+        raise ValueError(f"Invalid reference charge for channel {channel}: {charge}")
+    if channel in reference_s1:
+        raise ValueError(f"Multiple reference CSVs for channel {channel}, run {REFERENCE_RUN}.")
+    reference_s1[channel] = charge
 
     print(
         f"Channel {channel}: "
-        f"S1(E=0) = {charge:.6f}"
+        f"S1({REFERENCE_XE_PPM:g} ppm) = {charge:.6f}"
     )
 
 
-print("\nZero-field references:")
-for channel in sorted(s1_0_0_adc):
+print("\n0.01 ppm references:")
+for channel in sorted(reference_s1):
     print(
         f"  Ch {channel}: "
-        f"{s1_0_0_adc[channel]:.6f}"
+        f"{reference_s1[channel]:.6f}"
     )
 
 
 # ============================================================
+# Check every requested channel has its own reference.
+missing_references = CHANNELS_TO_PLOT - reference_s1.keys()
+if missing_references:
+    raise RuntimeError(
+        f"Missing {REFERENCE_XE_PPM:g} ppm reference (run {REFERENCE_RUN:06d}) "
+        f"for channels {sorted(missing_references)} in {path_waveforms}"
+    )
+
 # Second pass:
 # Calculate relative S1 for every run/channel
 # ============================================================
 
-channel_points_0_adc = defaultdict(
+channel_points = defaultdict(
     lambda: {
-        "efield": [],
+        "xeppm": [],
         "relative_s1": [],
         "run": [],
     }
@@ -348,7 +276,7 @@ print("\n========================================")
 print("Calculating relative S1")
 print("========================================")
 
-for csv_file in csv_files_0_adc:
+for csv_file in csv_files:
 
     channel, run = parse_filename(csv_file)
 
@@ -360,18 +288,18 @@ for csv_file in csv_files_0_adc:
     
     print(csv_file)
 
-    # Make sure run has an E-field
-    if run not in run_to_efield:
+    # Make sure the run has a Xe concentration
+    if run not in run_to_Xeppm:
         print(
             f"Run {run} not found in "
-            f"run_to_efield. Skipping."
+            f"run_to_Xeppm. Skipping."
         )
         continue
 
-    # Make sure this channel has E=0 reference
-    if channel not in s1_0_0_adc:
+    # Make sure this channel has a 0.01 ppm reference
+    if channel not in reference_s1:
         print(
-            f"No run 039510 reference found "
+            f"No run {REFERENCE_RUN:06d} reference found "
             f"for channel {channel}. Skipping."
         )
         continue
@@ -395,20 +323,22 @@ for csv_file in csv_files_0_adc:
 
     relative_s1 = (
         charge /
-        s1_0_0_adc[channel]
+        reference_s1[channel]
     )
 
-    efield = run_to_efield[run]
+    if run in channel_points[channel]["run"]:
+        raise ValueError(f"Multiple CSVs for channel {channel}, run {run}.")
+    xeppm = run_to_Xeppm[run]
 
-    channel_points_0_adc[channel]["efield"].append(
-        efield
+    channel_points[channel]["xeppm"].append(
+        xeppm
     )
 
-    channel_points_0_adc[channel]["relative_s1"].append(
+    channel_points[channel]["relative_s1"].append(
         relative_s1
     )
 
-    channel_points_0_adc[channel]["run"].append(
+    channel_points[channel]["run"].append(
         run
     )
 
@@ -422,137 +352,108 @@ print("Channel results")
 print("========================================")
 
 
-for channel in sorted(channel_points_0_adc):
+for channel in sorted(channel_points):
 
     print(f"\nChannel {channel}")
 
-    runs = channel_points_0_adc[channel]["run"]
-    efields_channel = channel_points_0_adc[channel]["efield"]
-    relative_channel = channel_points_0_adc[channel]["relative_s1"]
+    runs = channel_points[channel]["run"]
+    xeppm_channel = channel_points[channel]["xeppm"]
+    relative_channel = channel_points[channel]["relative_s1"]
 
-    for run, efield, relative_s1 in zip(
+    for run, xeppm, relative_s1 in zip(
         runs,
-        efields_channel,
+        xeppm_channel,
         relative_channel,
     ):
 
         print(
             f"  Run {run:05d} | "
-            f"E = {efield:.6f} kV/cm | "
+            f"Xe = {xeppm:.6f} ppm | "
             f"S1/S1_0 = {relative_s1:.6f}"
         )
 
 
 # ============================================================
-# Combine all channels by E-field
+# Combine normalized channels by Xe concentration
 # ============================================================
 
-points_by_efield = defaultdict(list)
+points_by_xeppm = defaultdict(list)
 
 
-for channel in sorted(channel_points_0_adc):
+for channel in sorted(channel_points):
 
-    efields_channel = (
-        channel_points_0_adc[channel]["efield"]
+    xeppm_channel = (
+        channel_points[channel]["xeppm"]
     )
 
     relative_channel = (
-        channel_points_0_adc[channel]["relative_s1"]
+        channel_points[channel]["relative_s1"]
     )
 
-    for efield, relative_s1 in zip(
-        efields_channel,
+    for xeppm, relative_s1 in zip(
+        xeppm_channel,
         relative_channel,
     ):
 
-        points_by_efield[efield].append(
+        points_by_xeppm[xeppm].append(
             relative_s1
         )
 
-print(f"Found {len(csv_files_0_adc)} CSV files.")
+print(f"Found {len(csv_files)} CSV files.")
 # ============================================================
-# Mean S1/S1_0 at every electric field
+# Mean S1/S1(0.01 ppm) at every Xe concentration
 # ============================================================
 
-efields = np.array(
-    sorted(points_by_efield.keys()),
+xeppm_values = np.array(
+    sorted(points_by_xeppm.keys()),
     dtype=float,
 )
 
 means = np.array([
-    np.mean(points_by_efield[efield])
-    for efield in efields
+    np.mean(points_by_xeppm[xeppm])
+    for xeppm in xeppm_values
 ])
 
 
-# Standard deviation among measurements at each field
+# Standard deviation between channels, not statistical uncertainty
 stds = np.array([
     np.std(
-        points_by_efield[efield],
+        points_by_xeppm[xeppm],
         ddof=1
     )
-    if len(points_by_efield[efield]) > 1
+    if len(points_by_xeppm[xeppm]) > 1
     else 0.0
-    for efield in efields
+    for xeppm in xeppm_values
 ])
 
 
-# Number of measurements contributing to each field
+# Number of channels contributing to each concentration
 n_points = np.array([
-    len(points_by_efield[efield])
-    for efield in efields
+    len(points_by_xeppm[xeppm])
+    for xeppm in xeppm_values
 ])
 
 
 print("\n========================================")
-print("Combined E-field results")
+print("Combined Xe concentration results")
 print("========================================")
 
 
-for efield, mean, std, n in zip(
-    efields,
+for xeppm, mean, std, n in zip(
+    xeppm_values,
     means,
     stds,
     n_points,
 ):
 
     print(
-        f"E = {efield:.6f} kV/cm | "
+        f"Xe = {xeppm:.6f} ppm | "
         f"mean = {mean:.6f} | "
         f"std = {std:.6f} | "
         f"N = {n}"
     )
 
 
-# ============================================================
-# Previous ProtoDUNE-VD study
-# ============================================================
-
-relative_s1_previous = np.array([
-    1.000,
-    0.938,
-    0.887,
-    0.858,
-    0.830,
-    0.785,
-    0.755,
-    0.735,
-    0.715,
-    0.695,
-    0.680,
-    0.665,
-    0.660,
-    0.640,
-    0.625,
-    0.620,
-    0.620,
-    0.560,
-])
-
-
-# Previous study contains the same first E-fields
-# plus one additional point at 0.556 kV/cm.
-efield_previous = [0., 0.028571, 0.057143, 0.085714, 0.114286, 0.142857, 0.171429, 0.2, 0.228571, 0.257143, 0.285714, 0.314286, 0.342857, 0.371429, 0.4, 0.428571, 0.444857,0.556]
 
 
 # ============================================================
@@ -564,39 +465,20 @@ print("Sanity checks")
 print("========================================")
 
 print("Channels found:")
-print(sorted(channel_points_0_adc.keys()))
+print(sorted(channel_points.keys()))
 
-print("\nCurrent E-fields:")
-print(efields)
+print("\nCurrent Xe Concentrations:")
+print(xeppm_values)
 
-print("\nNumber of current E-fields:")
-print(len(efields))
-
-print("\nPrevious study:")
-print(
-    f"E-field points = {len(efield_previous)}"
-)
-
-print(
-    f"S1 points      = {len(relative_s1_previous)}"
-)
+print("\nNumber of current Xe concentrations:")
+print(len(xeppm_values))
 
 
-if len(efield_previous) != len(relative_s1_previous):
 
-    raise ValueError(
-        "\nPrevious-study arrays have different sizes:\n"
-        f"  E-field = {len(efield_previous)}\n"
-        f"  S1      = {len(relative_s1_previous)}\n\n"
-        "Check the number of unique electric-field points "
-        "found in the current data."
-    )
-
-
-if len(efields) == 0:
+if len(xeppm_values) == 0:
 
     raise RuntimeError(
-        "No E-field points were extracted. "
+        "No Xe points were extracted. "
         "Check filenames and regex parsing."
     )
 
@@ -605,92 +487,42 @@ if len(efields) == 0:
 # Plot
 # ============================================================
 
-plt.figure(
-    figsize=(8, 6),
-    dpi=100,
-)
+if np.any(n_points != len(CHANNELS_TO_PLOT)):
+    raise RuntimeError("Each Xe concentration must contain all requested channels for a consistent mean.")
 
+plt.figure(figsize=(8, 6),dpi=100)
 
-# Previous ProtoDUNE-VD study
-plt.scatter(
-    efield_previous,
-    relative_s1_previous,
-    marker="x",
-    color="pink",
-    s=60,
-    label="Previous study",
-)
+# Normalize each channel before averaging, so channels have equal weight.
+for channel in sorted(channel_points):
+    points = channel_points[channel]
+    order = np.argsort(points["xeppm"])
+    plt.plot(
+        np.asarray(points["xeppm"])[order],
+        np.asarray(points["relative_s1"])[order],
+        "o--",
+        alpha=0.6,
+        label=f"Channel {channel}",
+    )
 
-
-# Current analysis
-plt.scatter(
-    efields,
-    means,
-    marker="*",
-    s=100,
-    label=rf"Mean: {CHANNELS_TO_PLOT}",
-)
-
-
-# ProtoDUNE-HD reference
 plt.errorbar(
-    E,
-    S1,
-    yerr=[
-        S1_err_low,
-        S1_err_high,
-    ],
+    xeppm_values,
+    means,
+    yerr=stds,
+    fmt="*-",
+    markersize=10,
     color="black",
-    fmt="o",
-    capsize=3,
-    label="Reference Data PD-HD",
-    zorder=10,
+    capsize=4,
+    label="Channel mean ± channel standard deviation",
 )
-
-plt.text(0.0,0.3, path_waveforms)
-
-# ============================================================
-# Plot formatting
-# ============================================================
-
-plt.xlabel(
-    "E-Field (kV/cm)"
-)
-
-plt.ylabel(
-    r"$S1_{\mathrm{drift}} / S1_{0}$"
-)
-
-plt.title(
-    "LY vs E-Field"
-)
-
-plt.grid(
-    alpha=0.3
-)
-
+plt.axhline(1.0, color="gray", linestyle=":", linewidth=1)
+plt.xlabel("Xe Concentration (ppm)")
+plt.ylabel(r"Relative light yield $S1(c_{\mathrm{Xe}}) / S1(0.01\,\mathrm{ppm})$")
+plt.title(f"LY vs Xe concentration (sample {path_waveforms.name})")
+plt.grid(alpha=0.3)
 plt.legend()
-
 plt.tight_layout()
 
-
-# ============================================================
-# Save
-# ============================================================
-
-output_file = (
-    f"LY_vs_EF_{int(time.time())}.png"
-)
-
-plt.savefig(
-    output_file,
-    dpi=300,
-    bbox_inches="tight",
-)
-
-print(
-    f"\nPlot saved as: {output_file}"
-)
-
-
+output_file = (script_dir / f"LY_vs_Xe_{int(time.time())}.png")
+plt.savefig(output_file,dpi=300,bbox_inches="tight",)
+print(f"\nPlot saved as: {output_file}")
 plt.show()

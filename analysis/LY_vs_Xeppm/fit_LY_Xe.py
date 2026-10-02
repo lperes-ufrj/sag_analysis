@@ -1,7 +1,5 @@
 """Fit relative LY for one channel using errors on the mean waveform.
 
-Usage: python analysis/LY_vs_EF/fit_LY_one_ch.py SAMPLE_LABEL CHANNEL
-Sample errors are assumed uncorrelated. Template charge is treated as exact.
 """
 from pathlib import Path
 from collections import defaultdict
@@ -29,8 +27,8 @@ sys.path.insert(0, str(repo_dir))
 from src.src import calc_integral_and_error,read_txt_error_file
 
 
-SAMPLE_LABELS = ['20260909_213507','20260909_125014']
-CHANNELS = [2050,2051,2060,2061,2080,2081]
+SAMPLE_LABELS = ['20261001_142744']
+CHANNELS = [2080,2081]
 script_dir = Path(__file__).resolve().parent.parent
 #print(f"Script directory: {script_dir}")
 repo_dir = script_dir.parent
@@ -71,6 +69,16 @@ templates_ch_2080_charge = np.trapezoid(np.loadtxt(path_templates / "template_42
 templates_ch_2081_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
 
 
+run_to_Xeppm = {
+    43440 : 0.01,
+    43552 : 1.0,
+    43717 : 2.0,
+    43790 : 3.0,
+    43903 : 5.0,
+    44010 : 7.0,
+    44108 : 10.0
+}
+
 list_templates_charge = {
     1010: templates_ch_1010_charge,
     1011: templates_ch_1011_charge,
@@ -107,111 +115,6 @@ list_templates_charge = {
 }
 
 
-
-run_to_efield = {
-    # Zero-field reference
-    39510: 0.0,
-
-    # Increasing HV scan
-    39511: 0.028571,
-    39512: 0.057143,
-    39514: 0.085714,
-    39515: 0.114286,
-    39516: 0.142857,
-    39517: 0.171429,
-    39518: 0.200000,
-    39519: 0.228571,
-    39521: 0.257143,
-    39522: 0.285714,
-    39523: 0.314286,
-    39525: 0.342857,
-    39526: 0.371429,
-    39527: 0.400000,
-    39528: 0.428571,
-    39529: 0.444857,
-
-    # Decreasing HV scan
-    39500: 0.444857,
-    39501: 0.400000,
-    39502: 0.342857,    
-    39503: 0.285714,    
-    39504: 0.228571,    
-    39506: 0.171429,   
-    39507: 0.114286,    
-    39508: 0.057143,
-
-    # Higher HV scan
-    43380: 0.685,
-    43381: 0.685,
-    43383: 0.586,
-    43384: 0.586,
-    43386: 0.771,
-    43387: 0.771,
-    43389: 0.44,
-    43390: 0.44,
-    41523: 0.834,
-    
-}
-
-E = [
-    0.000,
-    0.055,
-    0.110,
-    0.166,
-    0.222,
-    0.278,
-    0.333,
-    0.388,
-    0.444,
-    0.501,
-]
-
-PD_HD_result = [1.000,0.890,0.792,0.770,0.748,0.698,0.665,0.658,0.630,0.638]
-PD_HD_err_low = [ 0.000, 0.022, 0.035, 0.025, 0.025, 0.018, 0.025, 0.030, 0.024, 0.029]
-PD_HD_err_high = [ 0.000, 0.026, 0.038, 0.020, 0.025, 0.018, 0.023, 0.027, 0.022, 0.028]
-
-# Approximate ProtoDUNE-VD M8 points digitized from the figure
-relative_s1_previous = np.array([
-    1.000000000000000,
-    0.938679245283019,
-    0.880261248185777,
-    0.857764876632801,
-    0.831640058055152,
-    0.784470246734398,
-    0.761248185776488,
-    0.745283018867925,
-    0.718432510885341,
-    0.688679245283019,
-    0.682148040638607,
-    0.665457184325109,
-    0.664731494920174,
-    0.638606676342525,
-    0.627721335268505,
-    0.623367198838897,
-    0.625544267053701,
-    0.579100145137881,
-])
-
-efield_previous = np.array([
-    0.000000,
-    0.026250,
-    0.054375,
-    0.082500,
-    0.110625,
-    0.138125,
-    0.166875,
-    0.195625,
-    0.221875,
-    0.249375,
-    0.276875,
-    0.305625,
-    0.333125,
-    0.360625,
-    0.388750,
-    0.415625,
-    0.431875,
-    0.485625,
-])
 
 
 def Calc_Rel_LY(charge, template_charge):
@@ -252,7 +155,7 @@ def calculate_study_XA(csv_suffix, channel, y_err_runs,path_waveforms):
         ch_found+=1
         run = int(match.group(2))
 
-        if run not in run_to_efield:
+        if run not in run_to_Xeppm:
             print(f"Run {run:06d} has no electric-field mapping. Skipping.")
             continue
         if ch not in list_templates_charge:
