@@ -1,0 +1,45 @@
+Waveform selection cut summary
+==============================
+Run: 039522
+Input list: /exp/dune/app/users/lperes/sag_analysis/coincidence/input_lists/input_run039522.txt
+Coincidence selection CSV: /exp/dune/app/users/lperes/sag_analysis/coincidence/saved_coincidences/20260909_213507/coincidence_scan_run_039522_20260909_213507.csv
+Waveform interval configuration: /exp/dune/app/users/lperes/sag_analysis/coincidence/waveform_intervals.ini
+Rows in coincidence CSV: 55052
+Unique ROOT waveforms located: 55052
+Waveforms entering selection, including CSV multiplicity: 55052
+
+Applied cuts
+------------
+Compatibility: coin_1p0v_code selection criteria and boundaries
+1. Noise-region maximum ADC minus noise median <= 500 ADC
+2. Post-signal maximum ADC minus noise median <= 500 ADC
+3. Full-waveform positive amplitude above baseline <= 10000 ADC
+4. Primary peak must be inside the configured signal region
+5. No significant additional peak may be outside the signal region
+------------------------------------------------
+Channel 2050: noise=[0, 50), signal=[50, 110), post_signal=[500, 1023)
+Channel 2051: noise=[0, 50), signal=[50, 110), post_signal=[500, 1023)
+Channel 2060: noise=[0, 50), signal=[50, 110), post_signal=[500, 1023)
+Channel 2061: noise=[0, 50), signal=[50, 110), post_signal=[500, 1023)
+
+Final-selection baseline noise
+------------------------------
+Definition: sample standard deviation of all baseline-subtracted ADC values pooled from ticks [0, 50) of the final-selection waveforms.
+Channel 2050: 11.9156 ADC (waveforms=9681, baseline samples=484050)
+Channel 2051: 14.5719 ADC (waveforms=7942, baseline samples=397100)
+Channel 2060: 14.6246 ADC (waveforms=7623, baseline samples=381150)
+Channel 2061: 13.9176 ADC (waveforms=6021, baseline samples=301050)
+
+Cut results
+-----------
+Criterion                                                         Accepted    Rejected
+--------------------------------------------------------------------------------------
+Noise-region amplitude                                               55013          39
+Post-signal amplitude                                                52526        2526
+Full-range amplitude                                                 54654         398
+Primary peak outside signal region                                   51788        3264
+Significant additional peak outside signal region                    34647       20405
+All cuts combined                                                    31267       23785
+
+Final selected waveforms: 31267
+Note: individual rejection categories can overlap; therefore their rejected counts should not be summed.

@@ -131,10 +131,11 @@ def collect_histograms(
 
         waveform = np.asarray(chain.adc, dtype=np.float32)
         if len(waveform) != n_samples:
-            raise RuntimeError(
-                f"Channel {channel}, entry {entry} has {len(waveform)} samples; "
+            #raise RuntimeError(
+            print(    f"Channel {channel}, entry {entry} has {len(waveform)} samples; "
                 f"expected {n_samples}"
             )
+            continue
         adc_index = (
             (waveform - adc_min) * adc_bins / (adc_max - adc_min)
         ).astype(np.int32)

@@ -3,7 +3,31 @@
 *.db
 *.npz
 *.sh
-!analysis/run_plot_allwaveforms.sh
+*.pdf
+*.png
+*.csv
+*.ipynb
+analysis/plot_fprompt/plot_fprompt.ipynb
+
+# Exceptions
+!analysis/*.sh
+!analysis/RateAnalysis_data/*.npz
+!plots/
+!plots/**/*.pdf
+!plots/**/*.png
+!coincidence/*/*/*.csv
+!coincidence/*.csv
+!coincidence/*.sh
+!jobs_justin/decoder_selection_jobs/*.sh
+!coincidence/selected_waveforms/**
 
 # Compiled binaries
 /bin/
+/test/
+
+#Python Envinroments
+analysis/.venv/
+
+# ignore ml
+ml-selection-lucca/
+coin_1p0v_code/

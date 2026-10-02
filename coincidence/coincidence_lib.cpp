@@ -13,7 +13,7 @@
 namespace {
 
 constexpr std::size_t PEAK_SMOOTHING_WINDOW = 10;
-constexpr double MINIMUM_PEAK_HEIGHT_ADC = 100.0;
+constexpr double MINIMUM_PEAK_HEIGHT_ADC = 500.0;
 constexpr double MINIMUM_PEAK_HEIGHT_SIGMA = 10.0;
 
 struct PeakCandidate {
@@ -353,4 +353,68 @@ std::unique_ptr<TChain> createChain(const std::vector<std::string> &files)
         }
     }
     return chain;
+}
+
+
+double WaveformAnalyzer::fprompt(
+    const std::vector<short> &waveform,
+    unsigned int channel
+) const
+{
+    // Keep the manufacturer mapping and the two windows separate even while
+    // they have the same values, so either detector type can be tuned without
+    // changing the CSV/export code.
+    enum class SipmType { HPK, FBK };
+    static const std::unordered_map<unsigned int, SipmType> sipm_types{
+        {1010, SipmType::HPK}, {1011, SipmType::HPK},
+        {1020, SipmType::HPK}, {1021, SipmType::HPK},
+        {1030, SipmType::HPK}, {1031, SipmType::HPK},
+        {1040, SipmType::HPK}, {1041, SipmType::HPK},
+        {1050, SipmType::HPK}, {1051, SipmType::HPK},
+        {1060, SipmType::HPK}, {1061, SipmType::HPK},
+        {1070, SipmType::HPK}, {1071, SipmType::HPK},
+        {1080, SipmType::HPK}, {1081, SipmType::HPK},
+        {2050, SipmType::FBK}, {2051, SipmType::FBK},
+        {2060, SipmType::HPK}, {2061, SipmType::HPK},
+        {2070, SipmType::HPK}, {2071, SipmType::HPK},
+        {2080, SipmType::FBK}, {2081, SipmType::FBK},
+    };
+    constexpr std::pair<int, int> HPK_FAST_INTERVAL{60, 90};
+    constexpr std::pair<int, int> FBK_FAST_INTERVAL{60, 90};
+
+    const auto type = sipm_types.find(channel);
+    if (type == sipm_types.end()) {
+        throw std::runtime_error(
+            "Missing SiPM type for channel " + std::to_string(channel)
+        );
+    }
+
+    const auto [signal_start, signal_stop] = checkedRegion(waveform, channel, "signal");
+    const auto [configured_prompt_start, configured_prompt_stop] =
+        type->second == SipmType::HPK ? HPK_FAST_INTERVAL : FBK_FAST_INTERVAL;
+    if (configured_prompt_start < signal_start
+        || configured_prompt_stop > signal_stop
+        || configured_prompt_start >= configured_prompt_stop) {
+        throw std::runtime_error(
+            "Prompt interval is not contained in the signal interval for channel "
+            + std::to_string(channel)
+        );
+    }
+    const int prompt_start = configured_prompt_start;
+    const int prompt_stop = configured_prompt_stop;
+
+    const double waveform_baseline = noiseBaseline(waveform, channel);
+    double total_charge = 0.0;
+    double prompt_charge = 0.0;
+    for (int index = signal_start; index < signal_stop; ++index) {
+        const double charge =
+            static_cast<double>(waveform[static_cast<std::size_t>(index)])
+            - waveform_baseline;
+        total_charge += charge;
+        if (index >= prompt_start && index < prompt_stop) {
+            prompt_charge += charge;
+        }
+    }
+    if (total_charge == 0.0) return 0.0;
+    return prompt_charge / total_charge;
 }

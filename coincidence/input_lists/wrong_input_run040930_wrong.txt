@@ -1,0 +1,3 @@
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/19730/1/001/np02vd_raw_run040930_0000_df-s04-d0_dw_0_20251128T110150_175kV_gallery.root  
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/19730/1/001/np02vd_raw_run040930_0002_df-s04-d0_dw_0_20251128T110241_175kV_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/19730/1/001/np02vd_raw_run040930_0001_df-s04-d0_dw_0_20251128T110214_175kV_gallery.root

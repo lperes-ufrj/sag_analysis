@@ -1,0 +1,8 @@
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0000_df-s04-d0_dw_0_20260324T015042_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0001_df-s04-d0_dw_0_20260324T015123_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0002_df-s04-d0_dw_0_20260324T015203_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0003_df-s04-d0_dw_0_20260324T015243_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0004_df-s04-d0_dw_0_20260324T015323_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0005_df-s04-d0_dw_0_20260324T015403_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0006_df-s04-d0_dw_0_20260324T015443_0p01ppm_gallery.root
+/pnfs/dune/persistent/users/lperes/sag_analysis/fnal/21228/1/001/np02vd_raw_run043440_0007_df-s04-d0_dw_0_20260324T015523_0p01ppm_gallery.root

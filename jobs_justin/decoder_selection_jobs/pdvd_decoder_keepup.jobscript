@@ -1,0 +1,151 @@
+#!/bin/bash
+
+: <<'EOF'
+
+# Example submission (run from your submission environment):
+
+justin simple-workflow \
+  --mql "files from vd-protodune:vd-protodune_39366 ordered limit 10" \
+  --jobscript pdvd_decoder_keepup.jobscript \
+  --description "ProtoDUNE-VD standard stage-1 keepup reconstruction: run 39366, Calib. M8" \
+  --env INPUT_TAR_DIR_LOCAL="$INPUT_TAR_DIR_LOCAL" \
+  --env OUTPUT_TAG="M8_CALIB" \
+  --rss-mib 8000 \
+  --wall 14400 \
+  --scope usertests \
+  --lifetime-days 7 \
+  --output-pattern "*_M8_CALIB_keepup*.root:${FNALURL}${USERF}" \
+  --output-pattern "*_M8_CALIB_keepup_logs.tgz:${FNALURL}${USERF}"
+
+EOF
+
+if [ -z "${INPUT_TAR_DIR_LOCAL:-}" ]; then
+  echo "ERROR: INPUT_TAR_DIR_LOCAL is not set."
+  exit 1
+fi
+
+FCL_FILE="${INPUT_TAR_DIR_LOCAL}/standard_reco_stage1_protodunevd_keepup.fcl"
+
+echo "=== justIN ProtoDUNE-VD standard stage-1 keepup workflow ==="
+echo "FCL_FILE = ${FCL_FILE}"
+
+if [ ! -f "${FCL_FILE}" ]; then
+  echo "ERROR: FCL file not found: ${FCL_FILE}"
+  exit 1
+fi
+
+did_pfn_rse="$("${JUSTIN_PATH}/justin-get-file")"
+get_file_exit=$?
+
+if [ "${get_file_exit}" -ne 0 ]; then
+  echo "ERROR: justin-get-file failed with exit code ${get_file_exit}."
+  exit "${get_file_exit}"
+fi
+
+if [ -z "${did_pfn_rse}" ]; then
+  echo "No input file available."
+  exit 0
+fi
+
+read -r did pfn rse <<< "${did_pfn_rse}"
+
+if [ -z "${did}" ] || [ -z "${pfn}" ]; then
+  echo "ERROR: justin-get-file did not return a DID and PFN."
+  exit 1
+fi
+
+echo "Input DID: ${did}"
+echo "Input PFN: ${pfn}"
+
+# Calibration examples: MX04, M5_1, C7_M3_M4.
+# Electric-field examples: 0kV, 40kV, 155p7kV.
+OUTPUT_TAG="${OUTPUT_TAG:-unknown}"
+OUTPUT_TAG="$(printf '%s' "${OUTPUT_TAG}" | sed 's/[^A-Za-z0-9._-]/_/g')"
+
+echo "Output tag: ${OUTPUT_TAG}"
+
+input_file="$(basename "${pfn}")"
+stem="${input_file%.hdf5}"
+
+keepup_file="${stem}_${OUTPUT_TAG}_keepup.root"
+hist_file="${stem}_${OUTPUT_TAG}_keepup_hist.root"
+keepup_log="${stem}_${OUTPUT_TAG}_keepup.log"
+log_archive="${stem}_${OUTPUT_TAG}_keepup_logs.tgz"
+input_did_file="${stem}_${OUTPUT_TAG}_input-dids.txt"
+processed_pfn_file="${stem}_${OUTPUT_TAG}_processed-pfns.txt"
+
+printf '%s\n' "${did}" > "${input_did_file}"
+printf '%s\n' "${pfn}" > "${processed_pfn_file}"
+touch "${keepup_log}"
+
+# Archive logs and input provenance on success or failure.
+archive_logs()
+{
+  job_exit=$?
+  trap - EXIT
+  tar -czf "${log_archive}" \
+    "${keepup_log}" \
+    "${input_did_file}" \
+    "${processed_pfn_file}"
+  archive_exit=$?
+  if [ "${archive_exit}" -ne 0 ]; then
+    echo "ERROR: failed to create log archive."
+    if [ "${job_exit}" -eq 0 ]; then
+      job_exit="${archive_exit}"
+    fi
+  else
+    echo "Log archive: ${log_archive}"
+  fi
+  exit "${job_exit}"
+}
+trap archive_logs EXIT
+
+echo "=== Standard stage-1 keepup reconstruction ==="
+
+(
+  source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh || exit $?
+  setup dunesw v10_17_00d00 -q e26:prof || exit $?
+
+  # Allow sibling FCL files in the supplied folder to be resolved.
+  export FHICL_FILE_PATH="${INPUT_TAR_DIR_LOCAL}:${FHICL_FILE_PATH:-}"
+
+  if [ -z "${XROOTD_LIB:-}" ] || [ ! -f "${XROOTD_LIB}/libXrdPosixPreload.so" ]; then
+    echo "ERROR: XRootD preload library is unavailable."
+    exit 1
+  fi
+  export LD_PRELOAD="${XROOTD_LIB}/libXrdPosixPreload.so${LD_PRELOAD:+:${LD_PRELOAD}}"
+
+  echo "Running LArSoft:"
+  printf 'lar -c %s -s %s -o %s -T %s\n' \
+    "${FCL_FILE}" "${pfn}" "${keepup_file}" "${hist_file}"
+
+  lar -c "${FCL_FILE}" -s "${pfn}" \
+    -o "${keepup_file}" -T "${hist_file}"
+) > "${keepup_log}" 2>&1
+
+keepup_exit=$?
+tail -100 "${keepup_log}"
+
+if [ "${keepup_exit}" -ne 0 ]; then
+  echo "ERROR: keepup reconstruction failed with exit code ${keepup_exit}."
+  exit "${keepup_exit}"
+fi
+
+if [ ! -s "${keepup_file}" ]; then
+  echo "ERROR: keepup event ROOT output was not created."
+  exit 1
+fi
+
+echo "Keepup event output:"
+ls -lh "${keepup_file}"
+
+if [ -s "${hist_file}" ]; then
+  echo "Histogram output:"
+  ls -lh "${hist_file}"
+fi
+
+# Retain the event ROOT file as the final data product; no Gallery stage.
+echo "=== Workflow completed successfully ==="
+echo "Final event data product: ${keepup_file}"
+
+exit 0

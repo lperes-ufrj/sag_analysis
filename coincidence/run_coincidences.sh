@@ -1,28 +1,128 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-EXECUTABLE="$SCRIPT_DIR/../bin/run_coincidence"
+REPO_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd)
+EXECUTABLE="$REPO_DIR/bin/run_coincidence"
+INPUT_DIR="$SCRIPT_DIR/input_lists"
+THRESHOLD_DIR="$REPO_DIR/analysis/RateAnalysis_data_292kV"
+OUTPUT_ROOT="$SCRIPT_DIR/saved_coincidences"
 
-make -C "$SCRIPT_DIR" ../bin/run_coincidence || exit 1
+if (($# > 1)); then
+    echo "Usage: $0 [ANALYSIS_TIMESTAMP]" >&2
+    exit 2
+fi
 
-cd "$SCRIPT_DIR" || exit 1
+# Generate this identifier once so every run in the batch is written into the
+# same directory and appended to the same summary file. Supplying it as the
+# optional argument lets related pipeline stages use the same identifier.
+ANALYSIS_TIMESTAMP=${1:-$(date +%Y%m%d_%H%M%S)}
+ANALYSIS_DIR="$OUTPUT_ROOT/$ANALYSIS_TIMESTAMP"
 
-for input_file in input_lists/input_run*.txt; do
+make -C "$SCRIPT_DIR" run_coincidence
 
-    run=$(basename "$input_file" | sed -n 's/input_run\([0-9]\{6\}\)\.txt/\1/p')
+shopt -s nullglob
+threshold_files=("$THRESHOLD_DIR"/equalized_run_*_thresholds.txt)
+if ((${#threshold_files[@]} == 0)); then
+    echo "No equalized threshold files found in $THRESHOLD_DIR" >&2
+    exit 1
+fi
+
+processed_runs=0
+reference_runs=0
+skipped_runs=()
+for threshold_file in "${threshold_files[@]}"; do
+    threshold_name=${threshold_file##*/}
+    if [[ ! $threshold_name =~ ^equalized_run_([0-9]{6})_thresholds\.txt$ ]]; then
+        continue
+    fi
+
+    run=${BASH_REMATCH[1]}
+    input_file="$INPUT_DIR/input_run${run}.txt"
+    if [[ ! -f $input_file ]]; then
+        echo "Skipping run $run: missing input list $input_file" >&2
+        skipped_runs+=("$run")
+        continue
+    fi
 
     echo "========================================"
     echo "Running coincidence analysis for run $run"
     echo "Input: $input_file"
+    echo "Normalized-rate ADC thresholds: $threshold_file"
+    echo "Analysis timestamp: $ANALYSIS_TIMESTAMP"
+    echo "Analysis directory: $ANALYSIS_DIR"
+    echo "========================================"
+
+
+    "$EXECUTABLE" "$input_file" \
+        --run "$run" \
+        --timestamp "$ANALYSIS_TIMESTAMP" \
+        --output-dir "$OUTPUT_ROOT" \
+        --config "$SCRIPT_DIR/waveform_intervals.ini" \
+        --channels-coincident-left 2070 2071 2080 2081 \
+        --channels-coincident-right 2010 2011 2020 2021 \
+        --channels-to-save 2050 2051 2060 2061 \
+        --window-ticks 10 \
+        --min-amplitude-adc 0 \
+        --norm-rate-adc-threshold-file "$threshold_file"
+
+    ((processed_runs += 1))
+done
+
+# A reference sample defines the target rates and therefore has no equalized
+# threshold table. Process each reference NPZ's run once without a rate cut.
+reference_files=("$THRESHOLD_DIR"/reference_run_*.npz)
+for reference_file in "${reference_files[@]}"; do
+    reference_name=${reference_file##*/}
+    if [[ ! $reference_name =~ ^reference_run_([0-9]{6})\.npz$ ]]; then
+        continue
+    fi
+
+    run=${BASH_REMATCH[1]}
+    if [[ -f "$THRESHOLD_DIR/equalized_run_${run}_thresholds.txt" ]]; then
+        continue
+    fi
+
+    input_file="$INPUT_DIR/input_run${run}.txt"
+    if [[ ! -f $input_file ]]; then
+        echo "Skipping reference run $run: missing input list $input_file" >&2
+        skipped_runs+=("$run")
+        continue
+    fi
+
+    echo "========================================"
+    echo "Running unthresholded reference analysis for run $run"
+    echo "Input: $input_file"
+    echo "Reference data: $reference_file"
+    echo "Analysis timestamp: $ANALYSIS_TIMESTAMP"
+    echo "Analysis directory: $ANALYSIS_DIR"
     echo "========================================"
 
     "$EXECUTABLE" "$input_file" \
         --run "$run" \
-        --config waveform_intervals.ini \
-        --channels-coincident-left 2030 2031 2040 2041 \
-        --channels-coincident-right 2050 2051 2060 2061 \
-        --channels-to-save 2080 2081 \
+        --timestamp "$ANALYSIS_TIMESTAMP" \
+        --output-dir "$OUTPUT_ROOT" \
+        --config "$SCRIPT_DIR/waveform_intervals.ini" \
+        --channels-coincident-left 2070 2071 2080 2081 \
+        --channels-coincident-right 2010 2011 2020 2021 \
+        --channels-to-save 2050 2051 2060 2061 \
         --window-ticks 10 \
         --min-amplitude-adc 0
 
+    ((processed_runs += 1))
+    ((reference_runs += 1))
 done
+
+if ((processed_runs == 0)); then
+    echo "No runnable equalized or reference samples were found" >&2
+    exit 1
+fi
+
+echo
+echo "Coincidence analysis complete"
+echo "Processed runs: $processed_runs"
+echo "Unthresholded reference runs: $reference_runs"
+echo "Skipped runs: ${skipped_runs[*]:-none}"
+echo "Analysis timestamp: $ANALYSIS_TIMESTAMP"
+echo "Saved outputs: $ANALYSIS_DIR"
