@@ -15,8 +15,8 @@ CALIB_DIR  = REPO_ROOT / "calib"
 DECONV_DIR = REPO_ROOT / "deconvolve"
 FIT_DIR    = REPO_ROOT / "fit"
 
-# .roots stays where it is today (calib/.roots); to be revisited
-ROOTS_DIR = CALIB_DIR / ".roots"
+# roots stays where it is today (calib/roots); to be revisited
+ROOTS_DIR = CALIB_DIR / "roots"
 
 
 def add_repo_to_path():

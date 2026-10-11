@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 
 MAX_WF_PERSIST = 20000  # subsample for persistence plots (memory/time)
 
+TICK_NS = 16.0          # ns per tick (DAPHNE @ 62.5 MHz)
+
 
 def robust_template(wf_sel):
     """

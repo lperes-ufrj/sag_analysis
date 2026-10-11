@@ -12,30 +12,55 @@
 #include "aux/waveform_utils.h"
 #include "TStyle.h"
 #include <string>
+#include <cctype>
 
 /*
-    Channels of interest — SPE calibration (run 039357)
+    SPE calibration — the module is chosen at runtime (stdin), not compiled in.
 
     Larsoft channel map: code Y0NX
         Y = module type (1 = C, 2 = M)
-        N = module number
+        N = module number (single digit)
         X = SiPM array (0 or 1)
-        channel = 2000 + N*10 + X   (M modules)
+        channel = Y*1000 + N*10 + X
 
-    Calibrating X-ARAPUCAs M7 and M8, both SiPM arrays:
-        M7 ch0 -> 2070   (quartz filter, pTP inside)
-        M7 ch1 -> 2071
-        M8 ch0 -> 2080   (glass, pTP coated)
-        M8 ch1 -> 2081
+    Both SiPM arrays of the module are always processed:
+        M7 -> 2070, 2071   (quartz filter, pTP inside)
+        M8 -> 2080, 2081   (glass, pTP coated)
+        C5 -> 1050, 1051
  */
 
 
-const int CHANNELS[] = {2070, 2071};//, 2070, 2071};  
-const int NCH = sizeof(CHANNELS) / sizeof(CHANNELS[0]);
+// Channels are derived at runtime from the module name typed by the user
+// (M7, M8, C5, ...), following the LArSoft map above: both SiPM arrays of the
+// module are always processed.
+std::vector<int> CHANNELS;
+
+// "M7" -> {2070, 2071} ; "C5" -> {1050, 1051}
+bool parse_module(const std::string& module, std::vector<int>& channels){
+    if (module.size() < 2) return false;
+
+    char type = std::toupper(static_cast<unsigned char>(module[0]));
+    int base;
+    if      (type == 'M') base = 2000;
+    else if (type == 'C') base = 1000;
+    else                  return false;
+
+    const std::string digits = module.substr(1);
+    if (digits.empty() ||
+        !std::all_of(digits.begin(), digits.end(), ::isdigit)) return false;
+
+    // N is a single digit: the Y0NX code has no room for more, and
+    // 2000 + N*10 would collide with another module's channels.
+    if (digits.size() != 1) return false;
+    const int n = digits[0] - '0';
+
+    channels = {base + n * 10, base + n * 10 + 1};   // arrays X = 0 and 1
+    return true;
+}
 
 int channel_index(unsigned int ch){
-    for (int k = 0; k < NCH; k++)
-        if (CHANNELS[k] == ch) return k;
+    for (size_t k = 0; k < CHANNELS.size(); k++)
+        if (CHANNELS[k] == static_cast<int>(ch)) return static_cast<int>(k);
     return -1;
 }
 
@@ -78,7 +103,42 @@ int main(){
     std::cout << "Enter run number: ";
     std::cin >> run;
 
-    std::string input_pattern = ".roots/np02vd_raw_run" + run + "*_gallery.root";
+    // user input X-ARAPUCA module -> channels (both SiPM arrays)
+    std::string module;
+    std::cout << "Enter X-ARAPUCA module (e.g. M7, M8): ";
+    std::cin >> module;
+
+    if (!parse_module(module, CHANNELS)) {
+        std::cerr << "Unrecognized module '" << module
+                  << "'. Expected something like M7, M8 or C5.\n";
+        return 1;
+    }
+
+    const int NCH = static_cast<int>(CHANNELS.size());
+    std::cout << "Module " << module << " -> channels";
+    for (int c : CHANNELS) std::cout << " " << c;
+    std::cout << "\n";
+
+    // run-specific preselection: window boundaries and amplitude thresholds.
+    // Defaults match the nominal single, isolated LED pulse around sample ~265.
+    int    pre_lo = 0,   pre_hi = 239;
+    int    sig_lo = 270, sig_hi = 1023;
+    int    post_lo = 350, post_hi = 1023;
+    int    integ_lo = 255, integ_hi = 265;
+    double noise_cut = 20, sig_max_cut = 150, sig_min_cut = -50;
+    double pre_max_cut = 50, pre_min_cut = -40, post_max_cut = 50, post_min_cut = -40;
+
+    if (run == "041256") {
+        // Brighter LED pulses for this run: onset starts ~sample 250 (not 270)
+        // and amplitudes/noise run ~4x nominal -- confirmed against the raw
+        // gallery waveforms before loosening these cuts.
+        sig_lo = 250;
+        noise_cut = 80; sig_max_cut = 600; sig_min_cut = -200;
+        pre_max_cut = 200; pre_min_cut = -160;
+        post_max_cut = 200; post_min_cut = -160;
+    }
+
+    std::string input_pattern = "roots/np02vd_raw_run" + run + "*_gallery.root";
 
     run_calib->Add(input_pattern.c_str()); // read all root files in order
 
@@ -99,13 +159,15 @@ int main(){
     run_calib->SetBranchAddress("adc", &adc);
 
     // output files: one tree per channel inside each
-    std::string out_raw = ".roots/metrics_raw/run" + run + "_metrics_raw.root";
-    std::string out_sel = ".roots/metrics_select/run" + run + "_metrics_select.root";
+    std::string out_raw = "roots/metrics_raw/run" + run + "_metrics_raw.root";
+    std::string out_sel = "roots/metrics_select/run" + run + "_metrics_select.root";
 
     TFile* fraw = new TFile(out_raw.c_str(), "RECREATE");
     TFile* fsel = new TFile(out_sel.c_str(), "RECREATE");
 
-    ChannelData ch[NCH];
+    // sized once and never resized: book_metrics() takes the address of
+    // each member, which would dangle if the vector reallocated
+    std::vector<ChannelData> ch(NCH);
     for (int k = 0; k < NCH; k++){
         ch[k].channel = CHANNELS[k];
 
@@ -145,11 +207,11 @@ int main(){
         short mode = mode_of(*adc);
         double baseline = compute_baseline(*adc, 8, 12, mode);
         double std = noise(*adc, 240, baseline);
-        double integral = compute_integral(*adc, baseline, 255, 265);
+        double integral = compute_integral(*adc, baseline, integ_lo, integ_hi);
         double pre_min, pre_max, sig_min, sig_max, post_min, post_max;
-        compute_minmax(*adc, baseline, 0,   239,  pre_min,  pre_max);   // pre-signal (n=240)
-        compute_minmax(*adc, baseline, 270, 1023, sig_min,  sig_max);   // signal (slides "2 STEP PLUS": window redefined 300 -> 270)
-        compute_minmax(*adc, baseline, 350, 1023, post_min, post_max);  // post-signal
+        compute_minmax(*adc, baseline, pre_lo,  pre_hi,  pre_min,  pre_max);   // pre-signal
+        compute_minmax(*adc, baseline, sig_lo,  sig_hi,  sig_min,  sig_max);   // signal
+        compute_minmax(*adc, baseline, post_lo, post_hi, post_min, post_max);  // post-signal
 
         // fill this channel's metric variables
         d.o_mode     = mode;
@@ -161,7 +223,9 @@ int main(){
         d.o_post_min = post_min; d.o_post_max = post_max;
         d.traw->Fill();
 
-        if(std < 20 && sig_max < 150 && sig_min > -50 && pre_max < 50 && pre_min > -40 && post_max < 50 && post_min > -40){
+        if(std < noise_cut && sig_max < sig_max_cut && sig_min > sig_min_cut &&
+           pre_max < pre_max_cut && pre_min > pre_min_cut &&
+           post_max < post_max_cut && post_min > post_min_cut){
             // baseline-subtracted waveform stored in the selected tree
             d.o_wf_nobaseline.assign(n, 0.0);
             for (int j = 0; j < n; j++)

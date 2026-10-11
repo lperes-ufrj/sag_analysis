@@ -48,7 +48,7 @@ X-ARAPUCAs M7 and M8** (channels 2070, 2071, 2080, 2081). The other folders
 ## How to run
 
 ```bash
-cd calib && make && ./read_waveforms     # step 0 — asks for the run number
+cd calib && make && ./read_waveforms     # step 0 — asks for the run and the module
 cd ..
 
 python calib/main.py                     # step 1 — asks for the calibration run
@@ -64,10 +64,11 @@ inside `calib/`.
 Each step is independent: you can reprocess the fit alone without redoing the
 deconvolution, as long as the `deconv_<ch>.txt` files exist.
 
-> **M7 and M8 require two calibration passes.** `CHANNELS[]` is hardcoded in
-> `read_waveforms.cpp`, so each module has its own calibration run (M7 ← 039365
-> or 039473, M8 ← 039366 or 039474). The channel → run map lives in
-> `TEMPLATE_RUNS`, in `deconvolve/deconvolve.py`.
+> **M7 and M8 require two calibration passes**, since a calibration run only
+> illuminates one X-ARAPUCA (M7 ← 039365 or 039473, M8 ← 039366 or 039474).
+> `read_waveforms` asks which module to read and derives the channels from the
+> LArSoft map, so no recompiling is needed between passes. The channel → run
+> map lives in `TEMPLATE_RUNS`, in `deconvolve/deconvolve.py`.
 
 ## Extra tools
 

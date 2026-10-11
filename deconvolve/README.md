@@ -45,6 +45,33 @@ The channel → calibration run map is in `TEMPLATE_RUNS` (2070/2071 ← 039365,
 The `.txt` follows the format of the templates in
 `filter/templates_large_pulses/`: one value per line, `%.9e`.
 
+## Coincidence CSVs (`selected_waveforms/`)
+
+`coincidence/` now ships two CSV families, and **neither holds ADC samples**:
+
+| File | Content |
+|---|---|
+| `coincidence/waveforms_run_*.csv` | index: `event, channel, waveform_index_save, dt_ns_coinc, dt_ns_save` + the coincident partners. Note `dt` is in **ns** now |
+| `coincidence/selected_waveforms/channel_<ch>_run_<run>_*.csv` | per-sample aggregate: `sample, mean, median, percentile_16, percentile_84` |
+
+The waveforms themselves live in the gallery ROOT files listed in
+`coincidence/input_lists/` (on `/pnfs`), so **no persistence can be built from
+the repository alone** — the `percentile_16/84` band is the closest proxy.
+The average, however, is already computed, which is enough to deconvolve.
+
+```bash
+python deconvolve/deconvolve_coincidence.py <csv> [mine|francesca]
+python deconvolve/compare_deconv_templates.py --run 039500
+```
+
+| Script | Purpose |
+|---|---|
+| `deconvolve_coincidence.py` | deconvolves the `mean` and the `median` of one aggregate CSV with a chosen template |
+| `compare_deconv_templates.py` | same average, both templates (ours and Francesca's), one figure per channel |
+| `core.py` | shared math: `align_template`, `deconvolve_fft`, CSV reader |
+
+Outputs under `output/{plots,data}/coincidence/`.
+
 ## Configuration
 
 `config.py` holds the parameters that `fit/` also needs

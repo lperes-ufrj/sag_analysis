@@ -22,7 +22,7 @@ number; X = SiPM array, 0 or 1) → `channel = 2000 + N*10 + X`:
 
 ```bash
 make            # clang++ read_waveforms.cpp aux/waveform_utils.cpp -o read_waveforms $(root-config --cflags --libs)
-./read_waveforms   # asks for the run number on stdin
+./read_waveforms   # asks for the run number and the module (M7, M8, ...) on stdin
 ```
 
 Reads `.roots/np02vd_raw_run<run>*_gallery.root`, computes the metrics of each
@@ -46,9 +46,11 @@ post_max < 50  && post_min > -40
 It also saves the raw and selected persistences under
 `output/plots/adc-baseline/`.
 
-> The processed channels are hardcoded in `CHANNELS[]` (currently
-> `{2070, 2071}`). Switching module requires editing and recompiling — that is
-> why M7 and M8 have separate calibration runs.
+> The channels are derived at runtime from the module name typed on stdin,
+> following the LArSoft map (`M7` → 2070/2071, `M8` → 2080/2081, `C5` →
+> 1050/1051). Both SiPM arrays of the module are always processed. Switching
+> module no longer requires recompiling — but each module still needs its own
+> calibration run, since a run only illuminates one X-ARAPUCA.
 
 ### Input: `*_gallery.root`
 

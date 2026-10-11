@@ -1,5 +1,5 @@
 """Compare the SPE templates of the same channel taken from different
-calibration runs, and save their average.
+calibration runs, and save their average. Also compare with Francesca's templates if available.
 
 Each X-ARAPUCA was calibrated in two independent campaigns (M7: 039365 and
 039473; M8: 039366 and 039474). Since the template is normalized to 1 p.e.,
@@ -17,6 +17,8 @@ The 'media' folder sits inside templates/ on purpose: it behaves as a
 pseudo-run, so using the average in the deconvolution is just a matter of
 setting TEMPLATE_RUNS in deconvolve/deconvolve.py to {2070: "media", ...}.
 
+It also overlays our templates with Francesca's, one PNG per SiPM array.
+
 Usage:
     python calib/compare_templates.py
 """
@@ -30,6 +32,7 @@ import matplotlib.pyplot as plt
 
 from calib.aux import paths
 from calib.aux.spe_template import template_path
+from calib.aux.waveform import TICK_NS
 
 CALIB_DIR = paths.CALIB_DIR
 MEDIA_RUN = "media"          # pseudo-run name where the average is written
@@ -43,6 +46,19 @@ RUN_PAIRS = {
 }
 
 MODULE = {2070: "M7", 2071: "M7", 2080: "M8", 2081: "M8"}
+
+# --- comparison against Francesca's templates -------------------------------
+# Same ADC scale and same 1024-sample window as ours, so they are overlaid
+# as they are: no normalization, no alignment.
+# array label -> (Francesca's file, our run, our channel)
+FRANCESCA_DIR = "francesca_template"
+FRANCESCA = {
+    "M7_1": ("template_41236_M7_1.txt", "039365", 2070),
+    "M7_2": ("template_41236_M7_2.txt", "039365", 2071),
+    "M8_1": ("template_42156_M8_1.txt", "039366", 2080),
+    "M8_2": ("template_42156_M8_2.txt", "039366", 2081),
+}
+XLIM_US = (3.5, 10.0)        # plot window in us; set to None for the full 16.4 us
 
 ALIGN = True                 # align B onto the peak of A before comparing/averaging
 PULSE_WINDOW = (-50, 300)    # integration window, relative to the peak
@@ -113,6 +129,52 @@ def compare_channel(ch, run_a, run_b, plot_dir, data_dir, report):
           f"residual RMS {rms_res:.4f} ADC")
     return average
 
+def compare_with_francesca():
+    time = np.arange(1024)*16/1000
+
+    folder = Path("/Users/feynman/Documents/phd/sag_analysis/calib/data/templates/francesca_template/")
+    m7_1_template = np.load(folder / "template_41236_M7_1.txt")
+    m7_2_template = np.load(folder / "template_41236_M7_2.txt")
+    m8_1_template = np.load(folder / "template_41256_M8_1.txt")
+    m8_2_template = np.load(folder / "template_41256_M8_2.txt")
+
+def compare_with_francesca(plot_dir):
+    """Overlay our SPE template with Francesca's, one PNG per SiPM array.
+
+    Both are in ADC on a 1024-sample window, so they are plotted as they are
+    against time in us."""
+    fdir = paths.out(CALIB_DIR, "data", "templates", FRANCESCA_DIR)
+    time_us = np.arange(1024) * TICK_NS / 1000.0
+
+    for label, (fname, run, ch) in FRANCESCA.items():
+        fpath = fdir / fname
+        mine_path = template_path(run, ch)
+        if not fpath.is_file() or not mine_path.is_file():
+            print(f"{label}: MISSING {fpath if not fpath.is_file() else mine_path}"
+                  f" -- skipping")
+            continue
+
+        hers = np.loadtxt(fpath)
+        mine = np.load(mine_path)
+
+        fig, ax = plt.subplots(figsize=(9, 5))
+        ax.plot(time_us, mine, lw=1.0, label=f"this work - run {run}, ch {ch}")
+        ax.plot(time_us, hers, lw=1.0, alpha=0.85,
+                label=f"Francesca - {fname.split('_')[1]}")
+        ax.set_xlabel("Time [us]")
+        ax.set_ylabel("ADC - baseline")
+        ax.set_title(f"{label} - SPE template")
+        if XLIM_US is not None:
+            ax.set_xlim(*XLIM_US)
+        ax.legend()
+        plt.tight_layout()
+        fig.savefig(plot_dir / f"francesca_{label}.png")
+        plt.close(fig)
+
+        print(f"{label}: ours peak {time_us[int(np.argmax(mine))]:.3f} us / "
+              f"{mine.max():.2f} ADC | hers peak "
+              f"{time_us[int(np.argmax(hers))]:.3f} us / {hers.max():.2f} ADC")
+
 
 def main():
     plot_dir = paths.out(CALIB_DIR, "plots", "compare_templates")
@@ -127,6 +189,10 @@ def main():
         compare_channel(ch, run_a, run_b, plot_dir, data_dir, report)
 
     (data_dir / "comparison.txt").write_text("\n".join(report) + "\n")
+
+    print()
+    compare_with_francesca(plot_dir)
+
     print(f"\nAverages -> {data_dir}")
     print(f"Figures  -> {plot_dir}")
     print(f"Table    -> {data_dir / 'comparison.txt'}")

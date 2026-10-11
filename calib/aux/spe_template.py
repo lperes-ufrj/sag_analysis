@@ -42,6 +42,39 @@ CUT_STAGES = [
     }),
 ]
 
+# Run 041256: brighter LED pulses (noise/pre/post amplitudes run ~4x nominal,
+# same scaling applied to the read_waveforms.cpp preselection for this run).
+CUT_STAGES_041256 = [
+    ("noise", {
+        "noise": ("<", 60),
+    }),
+    ("amplitude", {
+        "sig_max": ("<", 240),
+        "sig_min": (">", -200),
+    }),
+    ("preamplitude", {
+        "pre_max": ("<", 140),
+        "pre_min": (">", -160),
+    }),
+    ("postamplitude", {
+        "post_max": ("<", 200),
+        "post_min": (">", -160),
+    }),
+    ("tight_prepost", {
+        "pre_max":  ("<", 50),
+        "post_max": ("<", 64),
+    }),
+]
+
+RUN_CUT_STAGES = {
+    "041256": CUT_STAGES_041256,
+}
+
+
+def get_cut_stages(run):
+    return RUN_CUT_STAGES.get(str(run), CUT_STAGES)
+
+
 N_PEAKS = 3          # slides: use up to the third peak
 N_BASELINE = 200     # pre-signal ticks used to correct the template residual offset
 
@@ -58,15 +91,45 @@ def get_sigma_n(minuit_obj, n):
     return minuit_obj.values["sigma1"] * np.sqrt(n)
 
 
+# SiPM array label per channel (LArSoft Y0NX map)
+ARRAY_LABEL = {2070: "M7_1", 2071: "M7_2", 2080: "M8_1", 2081: "M8_2"}
+
+# Francesca's templates: same ADC scale, same 1024-sample window as ours
+FRANCESCA_DIR = "francesca_template"
+FRANCESCA_FILES = {
+    2070: "template_41236_M7_1.txt",
+    2071: "template_41236_M7_2.txt",
+    2080: "template_42156_M8_1.txt",
+    2081: "template_42156_M8_2.txt",
+}
+
+
 def template_path(run, channel):
     """Canonical SPE template path -- this is what deconvolve/ reads."""
     return paths.out(CALIB_DIR, "data", "templates", run) / f"template_{channel}.npy"
+
+
+def francesca_template_path(channel):
+    """Path of Francesca's template for a channel."""
+    return (paths.out(CALIB_DIR, "data", "templates", FRANCESCA_DIR)
+            / FRANCESCA_FILES[channel])
+
+
+def load_spe_template(channel, source):
+    """Load the SPE template of a channel.
+
+    source: a calibration run ("039365", "media", ...) or "francesca".
+    """
+    if str(source).lower() == "francesca":
+        return np.loadtxt(francesca_template_path(channel))
+    return np.load(template_path(source, channel))
 
 
 def spe_template(f, m, run):
     templates = {}   # {channel: template_array}
     rng = np.random.default_rng(42)
 
+    cut_stages = get_cut_stages(run)
     keys = fc.latest_cycle_keys(f)
 
     for key in keys:
@@ -87,7 +150,7 @@ def spe_template(f, m, run):
         quality = np.ones(n_total, dtype=bool)
         cutflow = [("all", n_total)]
         missing = []
-        for stage_name, stage_cuts in CUT_STAGES:
+        for stage_name, stage_cuts in cut_stages:
             for branch, (op, thr) in stage_cuts.items():
                 if branch in tree:
                     quality &= apply_cut(
