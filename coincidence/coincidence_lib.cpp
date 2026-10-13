@@ -260,7 +260,11 @@ PeakSearchResult WaveformAnalyzer::findPeak(
     result.tick = primary->tick;
     result.amplitude = primary->amplitude;
 
-    const auto [signal_start, signal_stop] = checkedRegion(waveform, channel, "signal");
+    // Ordinary variables keep this lambda capture compatible with ROOT 6.28's
+    // C++17 interpreter (capturing structured bindings requires C++20).
+    const auto signal_region = checkedRegion(waveform, channel, "signal");
+    const int signal_start = signal_region.first;
+    const int signal_stop = signal_region.second;
     const auto outside_signal = [signal_start, signal_stop](int tick) {
         return tick < signal_start || tick >= signal_stop;
     };
