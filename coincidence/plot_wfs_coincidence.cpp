@@ -388,6 +388,29 @@ std::vector<LocatedWaveform> locateSelectedEntries(
     return located;
 }
 
+double maximumAbsoluteAmplitudeInRegion(
+    const std::vector<short> &adc,
+    const WaveformAnalyzer &analyzer,
+    unsigned int channel,
+    const std::string &name,
+    double baseline
+)
+{
+    auto [start, stop] = analyzer.interval(channel, name);
+    start = std::max(0, std::min(start, static_cast<int>(adc.size())));
+    stop = std::max(start, std::min(stop, static_cast<int>(adc.size())));
+    if (start == stop) throw std::runtime_error("Empty " + name + " interval");
+
+    double amplitude = 0.0;
+    for (int i = start; i < stop; ++i) {
+        amplitude = std::max(
+            amplitude,
+            std::abs(static_cast<double>(adc[i]) - baseline)
+        );
+    }
+    return amplitude;
+}
+
 double maximumInRegion(
     const std::vector<short> &adc,
     const WaveformAnalyzer &analyzer,
@@ -424,9 +447,9 @@ Coin1p0vSelectionDecision evaluateCoin1p0vSelection(
     const double noise_amplitude = maximumInRegion(
         adc, analyzer, channel, "noise"
     ) - baseline;
-    const double post_signal_amplitude = maximumInRegion(
-        adc, analyzer, channel, "post_signal"
-    ) - baseline;
+    const double post_signal_amplitude = maximumAbsoluteAmplitudeInRegion(
+    adc, analyzer, channel, "post_signal", baseline
+    );
     const bool fails_noise = noise_amplitude > max_auxiliary_amplitude;
     const bool fails_post_signal = post_signal_amplitude > max_auxiliary_amplitude;
     const double amplitude = fullRangeAmplitude(adc, baseline);

@@ -6,7 +6,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd)
 INPUT_DIR="$SCRIPT_DIR/input_lists/xe_input_lists"
 EXECUTABLE="$REPO_DIR/bin/plot_wfs_coincidence"
-MAX_AUXILIARY_AMPLITUDE="500"
+MAX_AUXILIARY_AMPLITUDE="1000"
 
 if (($# != 1)); then
     echo "Usage: $0 ANALYSIS_TIMESTAMP" >&2

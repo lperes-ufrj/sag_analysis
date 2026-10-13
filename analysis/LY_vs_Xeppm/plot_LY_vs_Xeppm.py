@@ -15,46 +15,46 @@ import time
 script_dir = Path(__file__).resolve().parent
 repo_dir = script_dir.parents[1]
 path_templates = repo_dir / "filter" / "templates_large_pulses"
-path_waveforms = repo_dir / "coincidence" / "selected_waveforms" / "20261001_140103"
+path_waveforms = repo_dir / "coincidence" / "selected_waveforms" / "20261002_120415"
 
 
 # ============================================================
 # Load templates
 # ============================================================
 
-templates_ch_1010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
-templates_ch_1011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
-templates_ch_1020_charge = np.trapezoid(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
-templates_ch_1021_charge = np.trapezoid(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
-templates_ch_1030_charge = np.trapezoid(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
-templates_ch_1031_charge = np.trapezoid(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
-templates_ch_1040_charge = np.trapezoid(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
-templates_ch_1041_charge = np.trapezoid(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
-templates_ch_1050_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
-templates_ch_1051_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
-templates_ch_1060_charge = np.trapezoid(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
-templates_ch_1061_charge = np.trapezoid(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
-templates_ch_1070_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
-templates_ch_1071_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
-templates_ch_1080_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
-templates_ch_1081_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
+templates_ch_1010_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
+templates_ch_1011_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
+templates_ch_1020_charge = np.trapz(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
+templates_ch_1021_charge = np.trapz(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
+templates_ch_1030_charge = np.trapz(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
+templates_ch_1031_charge = np.trapz(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
+templates_ch_1040_charge = np.trapz(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
+templates_ch_1041_charge = np.trapz(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
+templates_ch_1050_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
+templates_ch_1051_charge = np.trapz(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
+templates_ch_1060_charge = np.trapz(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
+templates_ch_1061_charge = np.trapz(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
+templates_ch_1070_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
+templates_ch_1071_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
+templates_ch_1080_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
+templates_ch_1081_charge = np.trapz(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
 
-templates_ch_2010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
-templates_ch_2011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
+templates_ch_2010_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
+templates_ch_2011_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
 # Não existe template M2_1 para o canal 2020.
-templates_ch_2021_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
-templates_ch_2030_charge = np.trapezoid(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
-templates_ch_2031_charge = np.trapezoid(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
-templates_ch_2040_charge = np.trapezoid(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
-templates_ch_2041_charge = np.trapezoid(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
-templates_ch_2050_charge = np.trapezoid(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
-templates_ch_2051_charge = np.trapezoid(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
-templates_ch_2060_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
-templates_ch_2061_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
-templates_ch_2070_charge = np.trapezoid(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
-templates_ch_2071_charge = np.trapezoid(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
-templates_ch_2080_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
-templates_ch_2081_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
+templates_ch_2021_charge = np.trapz(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
+templates_ch_2030_charge = np.trapz(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
+templates_ch_2031_charge = np.trapz(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
+templates_ch_2040_charge = np.trapz(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
+templates_ch_2041_charge = np.trapz(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
+templates_ch_2050_charge = np.trapz(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
+templates_ch_2051_charge = np.trapz(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
+templates_ch_2060_charge = np.trapz(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
+templates_ch_2061_charge = np.trapz(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
+templates_ch_2070_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
+templates_ch_2071_charge = np.trapz(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
+templates_ch_2080_charge = np.trapz(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
+templates_ch_2081_charge = np.trapz(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
 
 
 # Template integral associated with each channel
@@ -105,7 +105,7 @@ csv_files = sorted(
     
 )
 
-CHANNELS_TO_PLOT = {2050,2051,2060,2061}
+CHANNELS_TO_PLOT = {2070,2071,2080,2081}
 
 print(f"Found {len(csv_files)} CSV files.")
 
@@ -115,6 +115,7 @@ print(f"Found {len(csv_files)} CSV files.")
 # ============================================================
 
 run_to_Xeppm = {
+    43390 : 0.0001,
     43440 : 0.01,
     43552 : 1.0,
     43717 : 2.0,
@@ -124,7 +125,7 @@ run_to_Xeppm = {
     44108 : 10.0
 }
 
-REFERENCE_RUN = 43440
+REFERENCE_RUN = 43390
 REFERENCE_XE_PPM = run_to_Xeppm[REFERENCE_RUN]
 
 
@@ -139,11 +140,11 @@ def Calc_Charge(waveform, template_charge):
     """
 
     waveform = np.asarray(waveform, dtype=float)
-    if waveform.size < 500 or not np.all(np.isfinite(waveform[50:500])):
+    if waveform.size < 600 or not np.all(np.isfinite(waveform[50:600])):
         raise ValueError("Expected at least 600 samples with a finite integration window [50:600].")
     if not np.isfinite(template_charge) or template_charge == 0:
         raise ValueError("Template charge must be finite and nonzero.")
-    waveform_charge = np.trapezoid(waveform[50:500])
+    waveform_charge = np.trapz(waveform[50:600])
 
     return waveform_charge / template_charge
 
@@ -183,9 +184,9 @@ def parse_filename(csv_file):
 
 # ============================================================
 # First pass:
-# Calculate the 0.01 ppm reference S1 separately for every channel.
+# Calculate the 0.001 ppm reference S1 separately for every channel. It is actually zero, but we will use the 0.001 ppm run as the reference for relative S1 calculations.
 #
-# Run 43440 is the reference sample.
+# Run 43390 is the reference sample.
 # ============================================================
 
 reference_s1 = {}
@@ -210,7 +211,7 @@ for csv_file in csv_files:
     if channel not in list_templates_charge:
         continue
 
-    # Xe 0.01 ppm run
+    # Xe 0.001 ppm run
     if run != REFERENCE_RUN:
         continue
 
@@ -242,7 +243,7 @@ for csv_file in csv_files:
     )
 
 
-print("\n0.01 ppm references:")
+print("\n0.001 ppm references:")
 for channel in sorted(reference_s1):
     print(
         f"  Ch {channel}: "
@@ -296,7 +297,7 @@ for csv_file in csv_files:
         )
         continue
 
-    # Make sure this channel has a 0.01 ppm reference
+    # Make sure this channel has a 0.001 ppm reference
     if channel not in reference_s1:
         print(
             f"No run {REFERENCE_RUN:06d} reference found "
@@ -401,7 +402,7 @@ for channel in sorted(channel_points):
 
 print(f"Found {len(csv_files)} CSV files.")
 # ============================================================
-# Mean S1/S1(0.01 ppm) at every Xe concentration
+# Mean S1/S1(0.001 ppm) at every Xe concentration
 # ============================================================
 
 xeppm_values = np.array(
@@ -525,4 +526,3 @@ plt.tight_layout()
 output_file = (script_dir / f"LY_vs_Xe_{int(time.time())}.png")
 plt.savefig(output_file,dpi=300,bbox_inches="tight",)
 print(f"\nPlot saved as: {output_file}")
-plt.show()
