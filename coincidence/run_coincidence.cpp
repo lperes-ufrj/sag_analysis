@@ -915,6 +915,8 @@ RunStatistics scanCoincidence(
 
 }  // namespace
 
+// Allow the Gallery charge display to reuse the exact scanner and cuts.
+#ifndef COINCIDENCE_NO_MAIN
 int main(int argc, char **argv)
 {
     try {
@@ -1002,3 +1004,4 @@ int main(int argc, char **argv)
         return 1;
     }
 }
+#endif

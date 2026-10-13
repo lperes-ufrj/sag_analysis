@@ -21,7 +21,7 @@ struct PeakCandidate {
     double amplitude = 0.0;
 };
 
-std::string trim(const std::string &text)
+std::string trimIntervalLine(const std::string &text)
 {
     const auto first = text.find_first_not_of(" \t\r\n");
     if (first == std::string::npos) return {};
@@ -41,7 +41,7 @@ WaveformAnalyzer::WaveformAnalyzer(const std::string &ini_file)
     std::string line;
 
     while (std::getline(input, line)) {
-        line = trim(line);
+        line = trimIntervalLine(line);
         if (line.empty() || line.front() == '#' || line.front() == ';') continue;
 
         if (line.front() == '[' && line.back() == ']') {
@@ -58,15 +58,15 @@ WaveformAnalyzer::WaveformAnalyzer(const std::string &ini_file)
         const auto equals = line.find('=');
         if (equals == std::string::npos) continue;
 
-        const std::string name = trim(line.substr(0, equals));
-        const std::string value = trim(line.substr(equals + 1));
+        const std::string name = trimIntervalLine(line.substr(0, equals));
+        const std::string value = trimIntervalLine(line.substr(equals + 1));
         const auto colon = value.find(':');
         if (colon == std::string::npos) {
             throw std::runtime_error("Invalid interval in config: " + line);
         }
 
-        const int start = std::stoi(trim(value.substr(0, colon)));
-        const int stop = std::stoi(trim(value.substr(colon + 1)));
+        const int start = std::stoi(trimIntervalLine(value.substr(0, colon)));
+        const int stop = std::stoi(trimIntervalLine(value.substr(colon + 1)));
         intervals_[current_channel][name] = {start, stop};
     }
 }
