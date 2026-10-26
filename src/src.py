@@ -1,4 +1,8 @@
 import numpy as np
+try:
+    from numpy import trapezoid
+except ImportError:  # NumPy < 2.0 in the Gallery runtime.
+    from numpy import trapz as trapezoid
 from pathlib import Path
 import re
 
@@ -10,10 +14,10 @@ def calc_integral_and_error(waveform, y_err):
     """
     y = waveform[50:500]
 
-    integral_central = np.trapezoid(y)
+    integral_central = trapezoid(y)
 
-    integral_lower = np.trapezoid(y-y_err)
-    integral_upper = np.trapezoid(y+y_err)
+    integral_lower = trapezoid(y-y_err)
+    integral_upper = trapezoid(y+y_err)
 
     return integral_lower, integral_central, integral_upper
 

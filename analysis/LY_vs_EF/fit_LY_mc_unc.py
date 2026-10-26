@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LogNorm
 import numpy as np
+try:
+    from numpy import trapezoid
+except ImportError:  # NumPy < 2.0 in the Gallery runtime.
+    from numpy import trapz as trapezoid
 import pandas as pd
 import re
 import time
@@ -29,7 +33,7 @@ repo_dir = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(repo_dir))
 from src.src import calc_integral_and_error,read_txt_error_file
 
-
+TIMESTAMP = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 SAMPLE_LABELS = ['20260909_213507','20260909_125014']
 CHANNELS = [2050,2051,2060,2061,2080,2081]
 script_dir = Path(__file__).resolve().parent.parent
@@ -37,39 +41,39 @@ script_dir = Path(__file__).resolve().parent.parent
 repo_dir = script_dir.parent
 path_templates = "../" / repo_dir / "filter/templates_large_pulses"
 
-templates_ch_1010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
-templates_ch_1011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
-templates_ch_1020_charge = np.trapezoid(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
-templates_ch_1021_charge = np.trapezoid(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
-templates_ch_1030_charge = np.trapezoid(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
-templates_ch_1031_charge = np.trapezoid(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
-templates_ch_1040_charge = np.trapezoid(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
-templates_ch_1041_charge = np.trapezoid(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
-templates_ch_1050_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
-templates_ch_1051_charge = np.trapezoid(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
-templates_ch_1060_charge = np.trapezoid(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
-templates_ch_1061_charge = np.trapezoid(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
-templates_ch_1070_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
-templates_ch_1071_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
-templates_ch_1080_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
-templates_ch_1081_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
+templates_ch_1010_charge = trapezoid(np.loadtxt(path_templates / "template_42228_C1_1.txt"))
+templates_ch_1011_charge = trapezoid(np.loadtxt(path_templates / "template_42228_C1_2.txt"))
+templates_ch_1020_charge = trapezoid(np.loadtxt(path_templates / "template_41519_C2_1.txt"))
+templates_ch_1021_charge = trapezoid(np.loadtxt(path_templates / "template_41519_C2_2.txt"))
+templates_ch_1030_charge = trapezoid(np.loadtxt(path_templates / "template_41536_C3_1.txt"))
+templates_ch_1031_charge = trapezoid(np.loadtxt(path_templates / "template_41536_C3_2.txt"))
+templates_ch_1040_charge = trapezoid(np.loadtxt(path_templates / "template_42067_C4_1.txt"))
+templates_ch_1041_charge = trapezoid(np.loadtxt(path_templates / "template_42067_C4_2.txt"))
+templates_ch_1050_charge = trapezoid(np.loadtxt(path_templates / "template_42228_C5_1.txt"))
+templates_ch_1051_charge = trapezoid(np.loadtxt(path_templates / "template_42228_C5_2.txt"))
+templates_ch_1060_charge = trapezoid(np.loadtxt(path_templates / "template_40807_C6_1.txt"))
+templates_ch_1061_charge = trapezoid(np.loadtxt(path_templates / "template_40807_C6_2.txt"))
+templates_ch_1070_charge = trapezoid(np.loadtxt(path_templates / "template_40808_C7_1.txt"))
+templates_ch_1071_charge = trapezoid(np.loadtxt(path_templates / "template_40808_C7_2.txt"))
+templates_ch_1080_charge = trapezoid(np.loadtxt(path_templates / "template_40808_C8_1.txt"))
+templates_ch_1081_charge = trapezoid(np.loadtxt(path_templates / "template_40808_C8_2.txt"))
 
-templates_ch_2010_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
-templates_ch_2011_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
+templates_ch_2010_charge = trapezoid(np.loadtxt(path_templates / "template_42379_M1_1.txt"))
+templates_ch_2011_charge = trapezoid(np.loadtxt(path_templates / "template_42379_M1_2.txt"))
 # Não existe template M2_1 para o canal 2020.
-templates_ch_2021_charge = np.trapezoid(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
-templates_ch_2030_charge = np.trapezoid(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
-templates_ch_2031_charge = np.trapezoid(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
-templates_ch_2040_charge = np.trapezoid(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
-templates_ch_2041_charge = np.trapezoid(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
-templates_ch_2050_charge = np.trapezoid(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
-templates_ch_2051_charge = np.trapezoid(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
-templates_ch_2060_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
-templates_ch_2061_charge = np.trapezoid(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
-templates_ch_2070_charge = np.trapezoid(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
-templates_ch_2071_charge = np.trapezoid(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
-templates_ch_2080_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
-templates_ch_2081_charge = np.trapezoid(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
+templates_ch_2021_charge = trapezoid(np.loadtxt(path_templates / "template_42379_M2_2.txt"))
+templates_ch_2030_charge = trapezoid(np.loadtxt(path_templates / "template_40801_M3_1.txt"))
+templates_ch_2031_charge = trapezoid(np.loadtxt(path_templates / "template_40801_M3_2.txt"))
+templates_ch_2040_charge = trapezoid(np.loadtxt(path_templates / "template_40989_M4_1.txt"))
+templates_ch_2041_charge = trapezoid(np.loadtxt(path_templates / "template_40989_M4_2.txt"))
+templates_ch_2050_charge = trapezoid(np.loadtxt(path_templates / "template_42320_M5_1.txt"))
+templates_ch_2051_charge = trapezoid(np.loadtxt(path_templates / "template_42320_M5_2.txt"))
+templates_ch_2060_charge = trapezoid(np.loadtxt(path_templates / "template_40808_M6_1.txt"))
+templates_ch_2061_charge = trapezoid(np.loadtxt(path_templates / "template_40808_M6_2.txt"))
+templates_ch_2070_charge = trapezoid(np.loadtxt(path_templates / "template_43229_M7_1.txt"))
+templates_ch_2071_charge = trapezoid(np.loadtxt(path_templates / "template_43229_M7_2.txt"))
+templates_ch_2080_charge = trapezoid(np.loadtxt(path_templates / "template_42321_M8_1.txt"))
+templates_ch_2081_charge = trapezoid(np.loadtxt(path_templates / "template_42321_M8_2.txt"))
 
 
 list_templates_charge = {
@@ -520,36 +524,38 @@ def main() -> None:
         & (err > 0.0)
     )
 
-    if np.count_nonzero(fit_mask) <= 4:
-        raise ValueError("Need at least five valid points for the LArQL fit.")
-    cost = LeastSquares(
-    efields[fit_mask],
-    mean_rel_ly[fit_mask],
-    err[fit_mask],
-    LArQL,
-    )
-
-    m = Minuit(cost, 
-           B_1 = 0.92,
-           B_2 = 0.41,
-           E_0 = 0.05,
-           k_e = 0.07)
-
-    m.interactive()
-    m.migrad()
-    m.hesse()
-
-    ndof = np.count_nonzero(fit_mask) - m.nfit
-    reduced_chi2 = m.fval / ndof
     x_fit = np.linspace(0, efields.max(), 500)
 
-    y_fit = LArQL(
-        x_fit,
-        m.values["B_1"],
-        m.values["k_e"],
-        m.values["B_2"],
-        m.values["E_0"],
-    )
+#    if np.count_nonzero(fit_mask) <= 4:
+#        raise ValueError("Need at least five valid points for the LArQL fit.")
+#    cost = LeastSquares(
+#    efields[fit_mask],
+#    mean_rel_ly[fit_mask],
+#    err[fit_mask],
+#    LArQL,
+#    )
+#
+#    m = Minuit(cost, 
+#           B_1 = 0.92,
+#           B_2 = 0.41,
+#           E_0 = 0.05,
+#           k_e = 0.07)
+#
+#    m.interactive()
+#    m.migrad()
+#    m.hesse()
+#
+#    ndof = np.count_nonzero(fit_mask) - m.nfit
+#    reduced_chi2 = m.fval / ndof
+   
+#
+#    y_fit = LArQL(
+#        x_fit,
+#        m.values["B_1"],
+#        m.values["k_e"],
+#        m.values["B_2"],
+#        m.values["E_0"],
+#    )
 
     cost_birks = LeastSquares(
     efields[fit_mask],
@@ -579,20 +585,20 @@ def main() -> None:
 
     
 
-    fit_text_larql = (
-        rf"$\mathbf{{Fit\ LArQL:}}$"
-        "\n"
-        rf"$B_1 = {m.values['B_1']:.3f} \pm {m.errors['B_1']:.3f}$"
-        "\n"
-        rf"$k_\epsilon = {m.values['k_e']:.3f} \pm {m.errors['k_e']:.3f}$"
-        "\n"
-        rf"$B_2 = {m.values['B_2']:.3f} \pm {m.errors['B_2']:.3f}$"
-        "\n"
-        rf"$E_0 = {m.values['E_0']:.3f} \pm {m.errors['E_0']:.3f}$"
-        "\n"
-        rf"$\chi^2/\mathrm{{ndof}} = {m.fval:.1f}/{ndof}"
-        rf" = {reduced_chi2:.2f}$"
-        )
+    #fit_text_larql = (
+    #    rf"$\mathbf{{Fit\ LArQL:}}$"
+    #    "\n"
+    #    rf"$B_1 = {m.values['B_1']:.3f} \pm {m.errors['B_1']:.3f}$"
+    #    "\n"
+    #    rf"$k_\epsilon = {m.values['k_e']:.3f} \pm {m.errors['k_e']:.3f}$"
+    #    "\n"
+    #    rf"$B_2 = {m.values['B_2']:.3f} \pm {m.errors['B_2']:.3f}$"
+    #    "\n"
+    #    rf"$E_0 = {m.values['E_0']:.3f} \pm {m.errors['E_0']:.3f}$"
+    #    "\n"
+    #    rf"$\chi^2/\mathrm{{ndof}} = {m.fval:.1f}/{ndof}"
+    #    rf" = {reduced_chi2:.2f}$"
+    #    )
 
     fit_text_birks = (
         rf"$\mathbf{{Fit\ Birks:}}$"
@@ -607,27 +613,27 @@ def main() -> None:
 
     plt.figure(dpi=150)
     plt.grid()
-    plt.text(
-        0.97,
-        0.95,
-        fit_text_larql,
-        transform=plt.gca().transAxes,
-        ha="right",
-        va="top",
-        fontsize=10,
-        bbox={
-            "boxstyle": "round",
-            "facecolor": "white",
-            "alpha": 0.85,
-        },
-    )
+    #plt.text(
+    #    0.97,
+    #    0.95,
+    #    fit_text_larql,
+    #    transform=plt.gca().transAxes,
+    #    ha="right",
+    #    va="top",
+    #    fontsize=10,
+    #    bbox={
+    #        "boxstyle": "round",
+    #        "facecolor": "white",
+    #        "alpha": 0.85,
+    #    },
+    #)
 
     plt.text(
-        0.97,
-        0.63,
+        0.64,
+        0.95,
         fit_text_birks,
         transform=plt.gca().transAxes,
-        ha="right",
+        ha="left",
         va="top",
         fontsize=10,
         bbox={
@@ -637,7 +643,7 @@ def main() -> None:
         },
     )
 
-    plt.plot(x_fit, y_fit, color="blue", linewidth=2, label="LArQL fit")
+    #plt.plot(x_fit, y_fit, color="blue", linewidth=2, label="LArQL fit")
     plt.plot(x_fit, y_fit_birks, color="red", ls='--',linewidth=2, label="Birks fit")
     plt.scatter(
         efield_previous,
@@ -676,7 +682,7 @@ def main() -> None:
     dunestyle.WIP(x=0.05,y=0.83)
     plt.legend(loc="lower left",ncols=1 ,frameon=True, fontsize=8)
     plt.savefig(
-        repo_dir / "analysis" / "LY_vs_EF" / f"fit_LY_chs_{'_'.join(map(str,CHANNELS))}.png",
+        repo_dir / "analysis" / "LY_vs_EF" / f"fit_LY_chs_{'_'.join(map(str,CHANNELS))}_{TIMESTAMP}.png",
         dpi=300,
         bbox_inches="tight",
     )
