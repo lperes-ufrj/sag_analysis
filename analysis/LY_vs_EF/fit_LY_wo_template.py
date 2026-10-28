@@ -19,8 +19,9 @@ sys.path.insert(0, str(repo_dir))
 from src.src import calc_integral_and_error,read_txt_error_file
 
 TIMESTAMP = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-SAMPLE_LABELS = ['20260909_213507','20260909_125014']
-CHANNELS = [2050,2051,2060,2061,2080,2081]
+SAMPLE_LABELS = ['20261027_135746']#['20260909_213507','20260909_125014']
+
+CHANNELS = [2070,2071]
 run_to_efield = {
     # Zero-field reference
     39510: 0.0,
