@@ -62,7 +62,7 @@ for threshold_file in "${threshold_files[@]}"; do
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --channels-coincident-left 2070 2071 2080 2081 \
         --channels-coincident-right 2010 2011 2020 2021 \
-        --channels-to-save 2050 2051 2060 2061 \
+        --channels-to-save 2070 2071\
         --window-ticks 10 \
         --min-amplitude-adc 0 \
         --norm-rate-adc-threshold-file "$threshold_file"
@@ -106,7 +106,7 @@ for reference_file in "${reference_files[@]}"; do
         --config "$SCRIPT_DIR/waveform_intervals.ini" \
         --channels-coincident-left 2070 2071 2080 2081 \
         --channels-coincident-right 2010 2011 2020 2021 \
-        --channels-to-save 2050 2051 2060 2061 \
+        --channels-to-save 2070 2071\
         --window-ticks 10 \
         --min-amplitude-adc 0
 
